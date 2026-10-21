@@ -27,24 +27,39 @@ header .upd b{color:var(--ink);font-weight:600}
 .big{font-size:24px;font-weight:800;letter-spacing:-.3px}
 .unit{font-size:12px;color:var(--muted);font-weight:500;margin-inline-start:4px}
 .row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
-.row:first-of-type{border-top:0}
+.list>.row:first-child,.list>.inv:first-child>.row{border-top:0}
 .row .n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.row .sub{display:block;color:var(--muted);font-size:12px}
-.row .v{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.row .sub{display:block;color:var(--muted);font-size:12px;white-space:normal}
+.row .v{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;text-align:left}
+.row .v small{display:block;font-weight:500;font-size:11.5px;color:var(--muted)}
+.tap{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.hint{color:var(--muted);font-size:12px;margin:-2px 0 6px}
 .pos{color:var(--pos)}.neg{color:var(--neg)}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .kpi{background:var(--accent-soft);border-radius:10px;padding:10px 8px;text-align:center}
 .kpi span{display:block;font-size:12px;color:var(--muted)}
 .kpi b{font-size:14px;display:block;white-space:nowrap}
 .seg{display:flex;background:var(--accent-soft);border-radius:10px;padding:3px;margin-bottom:8px}
-.seg button{flex:1;border:0;background:none;font:inherit;font-size:13px;padding:7px;border-radius:8px;color:var(--muted)}
+.seg button{flex:1;border:0;background:none;font:inherit;font-size:13px;padding:7px 4px;border-radius:8px;color:var(--muted)}
 .seg button.on{background:var(--card);color:var(--ink);font-weight:700;box-shadow:var(--shadow)}
 input.search{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);margin-bottom:6px}
-.badge{font-size:11.5px;padding:2px 8px;border-radius:99px;font-weight:600}
+.badge{font-size:11.5px;padding:2px 8px;border-radius:99px;font-weight:600;white-space:nowrap}
 .b-ok{background:color-mix(in srgb,var(--pos) 15%,transparent);color:var(--pos)}
 .b-wait{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
 .b-bad{background:color-mix(in srgb,var(--neg) 15%,transparent);color:var(--neg)}
+.b-n{background:var(--accent-soft);color:var(--accent)}
 .empty{color:var(--muted);text-align:center;padding:14px 0;font-size:13px}
+.meta{color:var(--muted);font-size:13px;margin-bottom:4px}
+.items{background:var(--bg);border-radius:10px;padding:4px 10px;margin:0 0 10px;font-size:13px}
+.items .row{padding:7px 0}
+.back{border:0;background:none;font:inherit;color:var(--accent);font-weight:700;padding:14px 0 0;display:flex;align-items:center;gap:4px}
+.dhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.dhead h2{color:var(--ink)!important;font-size:16px!important;font-weight:800!important}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.tbl th{color:var(--muted);font-weight:600;text-align:right;padding:6px 4px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td.num{text-align:left;white-space:nowrap}
+.tbl td .d{color:var(--muted);font-size:11.5px;display:block}
 nav{position:fixed;bottom:0;inset-inline:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
 nav button{flex:1;border:0;background:none;font:inherit;font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0}
 nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -65,7 +80,7 @@ nav button.on{color:var(--accent);font-weight:700}
 <div id="lock"><form id="lf">
   <h1>گزارش مدیریت</h1>
   <p>برای دیدن گزارش، رمز را وارد کنید</p>
-  <input id="pw" type="password" inputmode="numeric" autocomplete="current-password" placeholder="رمز">
+  <input id="pw" type="password" autocomplete="current-password" placeholder="رمز">
   <button type="submit">ورود</button>
   <div class="err" id="err"></div>
 </form></div>
@@ -74,32 +89,43 @@ nav button.on{color:var(--accent);font-weight:700}
   <header><h1 id="co"></h1><div class="upd">آخرین به‌روزرسانی: <b id="upd"></b></div></header>
 
   <section class="page on" id="p-home">
-    <div class="card"><h2>مانده صندوق و بانک‌ها</h2><div class="big" id="cashTotal"></div><div id="cashList" style="margin-top:6px"></div></div>
+    <div class="card"><h2>مانده صندوق و بانک‌ها</h2><div class="big" id="cashTotal"></div><div class="list" id="cashList" style="margin-top:6px"></div><div class="hint" style="margin-top:6px">برای دیدن گردش حساب، روی هر ردیف بزنید</div></div>
     <div class="card"><h2>فروش</h2><div class="grid3" id="salesK"></div></div>
     <div class="card"><h2>خرید</h2><div class="grid3" id="buyK"></div></div>
-    <div class="card"><h2>چک‌های سررسید این هفته</h2><div id="chqSum"></div></div>
+    <div class="card"><h2>طلب و بدهی</h2><div class="list" id="arap"></div></div>
+    <div class="card"><h2>چک‌های سررسید تا آخر این هفته</h2><div class="list" id="chqSum"></div></div>
   </section>
 
   <section class="page" id="p-parties">
     <div class="card">
-      <div class="seg" id="pSeg"><button class="on" data-f="deb">بدهکاران</button><button data-f="cred">بستانکاران</button></div>
+      <div class="seg" id="pSeg"><button class="on" data-f="deb">بدهکاران</button><button data-f="cred">بستانکاران</button><button data-f="all">همه</button></div>
       <input class="search" id="pq" type="search" placeholder="جستجوی نام…">
-      <div id="pTotal" style="color:var(--muted);font-size:13px;margin-bottom:4px"></div>
-      <div id="pList"></div>
+      <div class="meta" id="pTotal"></div><div class="hint">برای دیدن معین، روی نام بزنید</div>
+      <div class="list" id="pList"></div>
     </div>
   </section>
 
-  <section class="page" id="p-cheques">
-    <div class="card"><h2>چک‌های دریافتی تا آخر این هفته</h2><div id="chIn"></div></div>
-    <div class="card"><h2>چک‌های پرداختی تا آخر این هفته</h2><div id="chOut"></div></div>
+  <section class="page" id="p-inv">
+    <div class="card">
+      <div class="seg" id="iSeg"><button class="on" data-f="F">فروش</button><button data-f="K">خرید</button><button data-f="all">همه</button></div>
+      <input class="search" id="iq" type="search" placeholder="جستجوی نام یا شماره فاکتور…">
+      <div class="meta" id="iTotal"></div><div class="hint">برای دیدن اقلام، روی فاکتور بزنید</div>
+      <div class="list" id="iList"></div>
+    </div>
   </section>
 
   <section class="page" id="p-stock">
-    <div class="card"><h2>موجودی کالا</h2><input class="search" id="sq" type="search" placeholder="جستجوی کالا…"><div id="sList"></div></div>
+    <div class="card"><h2>موجودی کالا</h2><div class="hint">برای دیدن کاردکس، روی کالا بزنید</div><input class="search" id="sq" type="search" placeholder="جستجوی کالا…"><div class="list" id="sList"></div></div>
   </section>
 
-  <section class="page" id="p-tax">
-    <div class="card"><h2>وضعیت فاکتورهای فروش در سامانه مودیان</h2><div id="tList"></div></div>
+  <section class="page" id="p-cheques">
+    <div class="card"><h2>چک‌های دریافتی تا آخر این هفته</h2><div class="list" id="chIn"></div></div>
+    <div class="card"><h2>چک‌های پرداختی تا آخر این هفته</h2><div class="list" id="chOut"></div></div>
+  </section>
+
+  <section class="page" id="p-detail">
+    <button class="back" id="back">› بازگشت</button>
+    <div class="card"><div class="dhead"><h2 id="dTitle"></h2><span class="badge b-n" id="dBadge"></span></div><div class="meta" id="dMeta"></div><div id="dBody"></div></div>
   </section>
 
   <div class="foot">همه‌ی مبالغ به تومان · <a href="#" id="logout">خروج</a></div>
@@ -108,23 +134,27 @@ nav button.on{color:var(--accent);font-weight:700}
 <nav id="nav" hidden>
   <button class="on" data-p="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>خلاصه</button>
   <button data-p="parties"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/></svg>طرف حساب</button>
+  <button data-p="inv"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/></svg>فاکتورها</button>
+  <button data-p="stock"><svg viewBox="0 0 24 24"><path d="M3 7.5L12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9"/></svg>کالا</button>
   <button data-p="cheques"><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 14h6M15 10h3"/></svg>چک‌ها</button>
-  <button data-p="stock"><svg viewBox="0 0 24 24"><path d="M3 7.5L12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9"/></svg>موجودی</button>
-  <button data-p="tax"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/></svg>مودیان</button>
 </nav>
 
 <script>
 const DATA_URL = "data.enc.json";
 const $ = s => document.querySelector(s);
 const fa = n => Math.round(n).toLocaleString("fa-IR");
+const faQ = n => (+n).toLocaleString("fa-IR", {maximumFractionDigits:2});
 const toman = r => fa(r / 10);
 const compact = r => { const t = r / 10, a = Math.abs(t);
   if (a >= 1e9) return (t/1e9).toLocaleString("fa-IR",{maximumFractionDigits:1}) + " میلیارد";
   if (a >= 1e6) return (t/1e6).toLocaleString("fa-IR",{maximumFractionDigits:1}) + " میلیون";
   return fa(t); };
-const faD = s => String(s).replace(/[0-9]/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
-const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const faD = s => String(s ?? "").replace(/[0-9]/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const normDigits = s => s.trim().replace(/[۰-۹]/g, d => d.charCodeAt(0) - 0x06F0).replace(/[٠-٩]/g, d => d.charCodeAt(0) - 0x0660);
+const FT = {F:"فروش", K:"خرید"}; const ft = t => FT[t] || "سایر";
+const TS = {sent:["ارسال به مودیان","b-ok"], unsent:["ارسال نشده","b-wait"], error:["خطای مودیان","b-bad"]};
 
 async function decrypt(pkg, pw) {
   const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey","deriveBits"]);
@@ -138,78 +168,125 @@ async function decrypt(pkg, pw) {
     return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-CBC", iv}, ek, ct)));
   }
   const key = await crypto.subtle.deriveKey(kdf, base, {name:"AES-GCM", length:256}, false, ["decrypt"]);
-  const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:b64(pkg.iv)}, key, b64(pkg.data));
-  return JSON.parse(new TextDecoder().decode(pt));
+  return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM", iv:b64(pkg.iv)}, key, b64(pkg.data))));
 }
-const normDigits = s => s.trim().replace(/[۰-۹]/g, d => d.charCodeAt(0) - 0x06F0).replace(/[٠-٩]/g, d => d.charCodeAt(0) - 0x0660);
 async function load(pw) {
   let pkg;
   try {
     const r = await fetch(new URL(DATA_URL, location.href).href + "?t=" + Date.now(), {cache:"no-store"});
-    if (!r.ok) throw 0;
-    pkg = await r.json();
+    if (!r.ok) throw 0; pkg = await r.json();
   } catch { throw new Error("net"); }
   return decrypt(pkg, normDigits(pw));
 }
-function row(name, val, cls = "", sub = "") {
-  return `<div class="row"><span class="n">${esc(name)}${sub ? `<span class="sub">${esc(sub)}</span>` : ""}</span><span class="v ${cls}">${val}</span></div>`;
-}
-function kpis(o) {
-  return [["امروز",o.today],["این هفته",o.week],["این ماه",o.month]].map(([l,v]) => `<div class="kpi"><span>${l}</span><b>${compact(v)}</b></div>`).join("");
-}
-let D, pFilter = "deb";
+const row = (name, val, cls = "", sub = "", attr = "") =>
+  `<div class="row${attr ? " tap" : ""}" ${attr}><span class="n">${esc(name)}${sub ? `<span class="sub">${sub}</span>` : ""}</span><span class="v ${cls}">${val}</span></div>`;
+const kpis = o => [["امروز",o.today],["این هفته",o.week],["این ماه",o.month]].map(([l,v]) => `<div class="kpi"><span>${l}</span><b>${compact(v)}</b></div>`).join("");
+const sum = (l, f) => l.reduce((a, x) => a + f(x), 0);
+
+let D, pFilter = "deb", iFilter = "F", lastPage = "home";
+const arr = k => Array.isArray(D[k]) ? D[k] : [];
 
 function render() {
   $("#co").textContent = D.company;
   $("#upd").textContent = faD(D.updated);
   const ageH = D.updated_iso ? (Date.now() - new Date(D.updated_iso)) / 36e5 : 0;
   $("#upd").classList.toggle("stale", ageH > 24);
-  const tot = D.cash.reduce((a,c) => a + c.balance, 0);
-  $("#cashTotal").innerHTML = `${toman(tot)}<span class="unit">تومان</span>`;
-  $("#cashList").innerHTML = D.cash.map(c => row(c.name, toman(c.balance), c.balance < 0 ? "neg" : "")).join("");
-  $("#salesK").innerHTML = kpis(D.sales);
-  $("#buyK").innerHTML = kpis(D.purchases);
-  const si = D.cheques_in.reduce((a,c) => a + c.amount, 0), so = D.cheques_out.reduce((a,c) => a + c.amount, 0);
-  $("#chqSum").innerHTML = row(`دریافتی (${fa(D.cheques_in.length)} فقره)`, toman(si), "pos") + row(`پرداختی (${fa(D.cheques_out.length)} فقره)`, toman(so), "neg");
-  const chq = (l, cls) => l.length ? l.map(c => row(c.party || "—", toman(c.amount), cls, `${faD(c.date)} · ش ${faD(c.number)}${c.overdue ? " · سررسید گذشته" : ""}`)).join("") : `<div class="empty">چکی برای این هفته نیست</div>`;
-  $("#chIn").innerHTML = chq(D.cheques_in, "pos");
-  $("#chOut").innerHTML = chq(D.cheques_out, "neg");
-  renderParties(); renderStock();
-  const TS = {sent:["ارسال شده","b-ok"], unsent:["ارسال نشده","b-wait"], error:["خطا","b-bad"]};
-  const ts = s => TS[s] || [s, s.includes("تأیید") ? "b-ok" : s.includes("رد") ? "b-bad" : "b-wait"];
-  $("#tList").innerHTML = D.tax_invoices.length ? D.tax_invoices.map(t => `<div class="row"><span class="n">${esc(t.party)}<span class="sub">فاکتور ${fa(t.no)} · ${faD(esc(t.date))} · ${toman(t.amount)} تومان</span></span><span class="badge ${ts(t.status)[1]}">${esc(ts(t.status)[0])}</span></div>`).join("") : `<div class="empty">فاکتوری ثبت نشده</div>`;
+  const cash = arr("cash");
+  $("#cashTotal").innerHTML = `${toman(sum(cash, c => c.balance))}<span class="unit">تومان</span>`;
+  $("#cashList").innerHTML = cash.map((c, i) => row(c.name, toman(c.balance), c.balance < 0 ? "neg" : "", "", c.ledger ? `data-led="cash:${i}"` : "")).join("");
+  $("#salesK").innerHTML = kpis(D.sales); $("#buyK").innerHTML = kpis(D.purchases);
+  const ps = arr("parties"), deb = ps.filter(p => p.balance > 0), cred = ps.filter(p => p.balance < 0);
+  $("#arap").innerHTML = row(`طلب از بدهکاران (${fa(deb.length)} نفر)`, toman(sum(deb, p => p.balance)), "pos", "", `data-go="parties:deb"`) +
+                         row(`بدهی به بستانکاران (${fa(cred.length)} نفر)`, toman(-sum(cred, p => p.balance)), "neg", "", `data-go="parties:cred"`);
+  const ci = arr("cheques_in"), co = arr("cheques_out");
+  $("#chqSum").innerHTML = row(`دریافتی (${fa(ci.length)} فقره)`, toman(sum(ci, c => c.amount)), "pos", "", `data-go="cheques"`) +
+                           row(`پرداختی (${fa(co.length)} فقره)`, toman(sum(co, c => c.amount)), "neg", "", `data-go="cheques"`);
+  const chq = (l, cls) => l.length ? l.map(c => row(c.party || "—", toman(c.amount), cls, `${faD(c.date)} · ش ${faD(esc(c.number))}${c.overdue ? ` · <b class="neg">سررسید گذشته</b>` : ""}`)).join("") : `<div class="empty">چکی نیست</div>`;
+  $("#chIn").innerHTML = chq(ci, "pos"); $("#chOut").innerHTML = chq(co, "neg");
+  renderParties(); renderInv(); renderStock();
 }
 function renderParties() {
   const q = $("#pq").value.trim();
-  const l = D.parties.filter(p => (pFilter === "deb" ? p.balance > 0 : p.balance < 0) && (!q || p.name.includes(q))).sort((a,b) => Math.abs(b.balance) - Math.abs(a.balance));
-  const sum = l.reduce((a,p) => a + Math.abs(p.balance), 0);
-  $("#pTotal").textContent = `${fa(l.length)} نفر · جمع ${toman(sum)} تومان`;
-  $("#pList").innerHTML = l.length ? l.map(p => row(p.name, toman(Math.abs(p.balance)), pFilter === "deb" ? "pos" : "neg")).join("") : `<div class="empty">موردی نیست</div>`;
+  const l = arr("parties").map((p, i) => ({...p, i}))
+    .filter(p => (pFilter === "deb" ? p.balance > 0 : pFilter === "cred" ? p.balance < 0 : true) && (!q || p.name.includes(q)))
+    .sort((a,b) => Math.abs(b.balance) - Math.abs(a.balance));
+  $("#pTotal").textContent = `${fa(l.length)} نفر · جمع ${toman(Math.abs(sum(l, p => p.balance)))} تومان`;
+  $("#pList").innerHTML = l.length ? l.map(p => row(p.name, toman(Math.abs(p.balance)), p.balance > 0 ? "pos" : p.balance < 0 ? "neg" : "",
+    p.balance > 0 ? "بدهکار" : p.balance < 0 ? "بستانکار" : "تسویه", `data-led="parties:${p.i}"`)).join("") : `<div class="empty">موردی نیست</div>`;
+}
+function invRow(f, i) {
+  const st = f.type === "F" && f.tax ? TS[f.tax] : null;
+  return `<div class="inv">${row(f.party || "—", `${toman(f.total)}<small>${ft(f.type)}</small>`, f.type === "K" ? "neg" : "",
+    `فاکتور ${fa(f.no)} · ${faD(f.date)}${st ? ` · <span class="badge ${st[1]}">${st[0]}</span>` : ""}`, `data-inv="${i}"`)}<div class="items" hidden></div></div>`;
+}
+function renderInv() {
+  const q = $("#iq").value.trim();
+  const l = arr("invoices").map((f, i) => ({...f, i})).filter(f => (iFilter === "all" || f.type === iFilter) && (!q || (f.party || "").includes(q) || String(f.no) === normDigits(q)));
+  $("#iTotal").textContent = `${fa(l.length)} فاکتور · جمع ${toman(sum(l, f => f.total))} تومان`;
+  $("#iList").innerHTML = l.length ? l.map(f => invRow(f, f.i)).join("") : `<div class="empty">فاکتوری نیست</div>`;
+}
+function toggleInv(el) {
+  const f = arr("invoices")[+el.dataset.inv], box = el.nextElementSibling;
+  if (!box.hidden) { box.hidden = true; return; }
+  const lines = Array.isArray(f.lines) ? f.lines : [];
+  box.innerHTML = (lines.length ? lines.map(x => row(x.name, toman(x.qty * x.price), "", `${faQ(x.qty)} ${esc(x.unit || "")} × ${toman(x.price)}`)).join("") : `<div class="empty">ریز اقلام ثبت نشده</div>`)
+    + (f.vat ? row("مالیات بر ارزش افزوده", toman(f.vat)) : "") + (f.disc ? row("تخفیف", toman(f.disc)) : "");
+  box.hidden = false;
 }
 function renderStock() {
   const q = $("#sq").value.trim();
-  const l = D.stock.filter(s => !q || s.name.includes(q));
-  $("#sList").innerHTML = l.length ? l.map(s => row(s.name, `${fa(s.qty)} <span class="unit">${esc(s.unit)}</span>`, s.qty <= 0 ? "neg" : "")).join("") : `<div class="empty">موردی نیست</div>`;
+  const l = arr("stock").map((s, i) => ({...s, i})).filter(s => !q || s.name.includes(q));
+  $("#sList").innerHTML = l.length ? l.map(s => row(s.name, `${faQ(s.qty)} <span class="unit">${esc(s.unit)}</span>`, s.qty < 0 ? "neg" : "", "", `data-card="${s.i}"`)).join("") : `<div class="empty">موردی نیست</div>`;
 }
-function show() { $("#lock").hidden = true; $("#lock").style.display = "none"; $("#app").hidden = false; $("#nav").hidden = false; render(); }
+function openDetail(title, badge, meta, body) {
+  $("#dTitle").textContent = title; $("#dBadge").textContent = badge; $("#dBadge").hidden = !badge;
+  $("#dMeta").innerHTML = meta; $("#dBody").innerHTML = body; show("detail", true);
+}
+function openLedger(kind, i) {
+  const p = arr(kind)[i], L = Array.isArray(p.ledger) ? p.ledger : [];
+  const tb = sum(L, x => x.bed), ts = sum(L, x => x.bes);
+  const body = L.length ? `<table class="tbl"><thead><tr><th>شرح</th><th>بدهکار</th><th>بستانکار</th><th>مانده</th></tr></thead><tbody>${
+    [...L].reverse().map(x => `<tr><td>${faD(esc(x.desc)) || "—"}<span class="d">${faD(x.date)} · سند ${fa(x.no)}</span></td><td class="num">${x.bed ? toman(x.bed) : ""}</td><td class="num">${x.bes ? toman(x.bes) : ""}</td><td class="num ${x.bal < 0 ? "neg" : ""}">${toman(Math.abs(x.bal))}</td></tr>`).join("")
+  }</tbody></table>` : `<div class="empty">گردشی ثبت نشده</div>`;
+  const bal = p.balance;
+  openDetail(p.name, kind === "cash" ? "معین" : bal > 0 ? "بدهکار" : bal < 0 ? "بستانکار" : "تسویه",
+    `مانده: <b class="${bal < 0 ? "neg" : "pos"}">${toman(Math.abs(bal))}</b> تومان · جمع بدهکار ${toman(tb)} · جمع بستانکار ${toman(ts)}<br>جدیدترین ردیف بالاست`, body);
+}
+function openCardex(i) {
+  const s = arr("stock")[i], C = Array.isArray(s.cardex) ? s.cardex : [];
+  const body = C.length ? `<table class="tbl"><thead><tr><th>شرح</th><th>وارده</th><th>صادره</th><th>مانده</th></tr></thead><tbody>${
+    [...C].reverse().map(x => `<tr><td>${ft(x.type)} ${fa(x.no)} · ${esc(x.party) || "—"}<span class="d">${faD(x.date)}${x.price ? ` · فی ${toman(x.price)}` : ""}</span></td><td class="num pos">${x.in ? faQ(x.in) : ""}</td><td class="num neg">${x.out ? faQ(x.out) : ""}</td><td class="num">${faQ(x.bal)}</td></tr>`).join("")
+  }</tbody></table>` : `<div class="empty">گردشی در فاکتورها ثبت نشده</div>`;
+  openDetail(s.name, "کاردکس", `موجودی فعلی: <b>${faQ(s.qty)} ${esc(s.unit)}</b><br>جدیدترین ردیف بالاست`, body);
+}
+function show(page, keepNav) {
+  if (page !== "detail") lastPage = page;
+  if (!keepNav) document.querySelectorAll("#nav button").forEach(x => x.classList.toggle("on", x.dataset.p === page));
+  document.querySelectorAll(".page").forEach(p => p.classList.toggle("on", p.id === "p-" + page));
+  scrollTo(0, 0);
+}
+function unlock() { $("#lock").style.display = "none"; $("#app").hidden = false; $("#nav").hidden = false; render(); }
 
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-led],[data-card],[data-inv],[data-go]"); if (!t) return;
+  if (t.dataset.led) { const [k, i] = t.dataset.led.split(":"); openLedger(k, +i); }
+  else if (t.dataset.card) openCardex(+t.dataset.card);
+  else if (t.dataset.inv) toggleInv(t);
+  else { const [p, f] = t.dataset.go.split(":"); if (f) { pFilter = f; document.querySelectorAll("#pSeg button").forEach(x => x.classList.toggle("on", x.dataset.f === f)); renderParties(); } show(p); }
+});
+$("#back").onclick = () => show(lastPage);
 $("#lf").onsubmit = async e => {
   e.preventDefault();
   const pw = $("#pw").value; $("#err").textContent = "در حال باز کردن…";
-  try { D = await load(pw); try { sessionStorage.setItem("pw", pw); } catch {} $("#err").textContent = ""; show(); }
+  try { D = await load(pw); try { sessionStorage.setItem("pw", pw); } catch {} $("#err").textContent = ""; unlock(); }
   catch (x) { $("#err").textContent = x.message === "net" ? "اتصال برقرار نشد، دوباره امتحان کنید" : "رمز اشتباه است"; }
 };
 $("#logout").onclick = e => { e.preventDefault(); try { sessionStorage.removeItem("pw"); } catch {} location.reload(); };
-document.querySelectorAll("#nav button").forEach(b => b.onclick = () => {
-  document.querySelectorAll("#nav button").forEach(x => x.classList.toggle("on", x === b));
-  document.querySelectorAll(".page").forEach(p => p.classList.toggle("on", p.id === "p-" + b.dataset.p));
-  scrollTo(0, 0);
-});
-document.querySelectorAll("#pSeg button").forEach(b => b.onclick = () => {
-  pFilter = b.dataset.f; document.querySelectorAll("#pSeg button").forEach(x => x.classList.toggle("on", x === b)); renderParties();
-});
-$("#pq").oninput = renderParties; $("#sq").oninput = renderStock;
-(async () => { let pw = null; try { pw = sessionStorage.getItem("pw"); } catch {} if (pw) { try { D = await load(pw); show(); } catch {} } })();
+document.querySelectorAll("#nav button").forEach(b => b.onclick = () => show(b.dataset.p));
+document.querySelectorAll("#pSeg button").forEach(b => b.onclick = () => { pFilter = b.dataset.f; document.querySelectorAll("#pSeg button").forEach(x => x.classList.toggle("on", x === b)); renderParties(); });
+document.querySelectorAll("#iSeg button").forEach(b => b.onclick = () => { iFilter = b.dataset.f; document.querySelectorAll("#iSeg button").forEach(x => x.classList.toggle("on", x === b)); renderInv(); });
+$("#pq").oninput = renderParties; $("#iq").oninput = renderInv; $("#sq").oninput = renderStock;
+(async () => { let pw = null; try { pw = sessionStorage.getItem("pw"); } catch {} if (pw) { try { D = await load(pw); unlock(); } catch {} } })();
 </script>
 </body>
 </html>
