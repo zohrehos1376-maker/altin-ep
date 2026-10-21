@@ -30,6 +30,7 @@ header .upd b{color:var(--ink);font-weight:600}
 .list>.row:first-child,.list>.inv:first-child>.row{border-top:0}
 .row .n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row .sub{display:block;color:var(--muted);font-size:12px;white-space:normal}
+.row .sub .d{font-size:11.5px}
 .row .v{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;text-align:left}
 .row .v small{display:block;font-weight:500;font-size:11.5px;color:var(--muted)}
 .tap{cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -154,7 +155,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 const normDigits = s => s.trim().replace(/[۰-۹]/g, d => d.charCodeAt(0) - 0x06F0).replace(/[٠-٩]/g, d => d.charCodeAt(0) - 0x0660);
 const FT = {F:"فروش", K:"خرید"}; const ft = t => FT[t] || "سایر";
-const TS = {sent:["ارسال به مودیان","b-ok"], unsent:["ارسال نشده","b-wait"], error:["خطای مودیان","b-bad"]};
+const TS = {sent:["ارسال به مودیان","b-ok"], edited:["ارسال شده، بعداً ویرایش شده","b-wait"], pending:["در صف ارسال","b-wait"], unsent:["ارسال نشده","b-wait"], error:["خطای مودیان","b-bad"]};
 
 async function decrypt(pkg, pw) {
   const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey","deriveBits"]);
@@ -217,7 +218,7 @@ function renderParties() {
 function invRow(f, i) {
   const st = f.type === "F" && f.tax ? TS[f.tax] : null;
   return `<div class="inv">${row(f.party || "—", `${toman(f.total)}<small>${ft(f.type)}</small>`, f.type === "K" ? "neg" : "",
-    `فاکتور ${fa(f.no)} · ${faD(f.date)}${st ? ` · <span class="badge ${st[1]}">${st[0]}</span>` : ""}`, `data-inv="${i}"`)}<div class="items" hidden></div></div>`;
+    `فاکتور ${fa(f.no)} · ${faD(f.date)}${st ? ` · <span class="badge ${st[1]}">${st[0]}</span>${f.sent ? ` <span class="d">ارسال ${faD(f.sent)}</span>` : ""}` : ""}`, `data-inv="${i}"`)}<div class="items" hidden></div></div>`;
 }
 function renderInv() {
   const q = $("#iq").value.trim();
