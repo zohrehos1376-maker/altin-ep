@@ -90,8 +90,8 @@ nav button.on{color:var(--accent);font-weight:700}
   </section>
 
   <section class="page" id="p-cheques">
-    <div class="card"><h2>چک‌های دریافتی این هفته</h2><div id="chIn"></div></div>
-    <div class="card"><h2>چک‌های پرداختی این هفته</h2><div id="chOut"></div></div>
+    <div class="card"><h2>چک‌های دریافتی تا آخر این هفته</h2><div id="chIn"></div></div>
+    <div class="card"><h2>چک‌های پرداختی تا آخر این هفته</h2><div id="chOut"></div></div>
   </section>
 
   <section class="page" id="p-stock">
@@ -99,7 +99,7 @@ nav button.on{color:var(--accent);font-weight:700}
   </section>
 
   <section class="page" id="p-tax">
-    <div class="card"><h2>فاکتورهای ارسال‌شده به سامانه مودیان</h2><div id="tList"></div></div>
+    <div class="card"><h2>وضعیت فاکتورهای فروش در سامانه مودیان</h2><div id="tList"></div></div>
   </section>
 
   <div class="foot">همه‌ی مبالغ به تومان · <a href="#" id="logout">خروج</a></div>
@@ -122,12 +122,22 @@ const compact = r => { const t = r / 10, a = Math.abs(t);
   if (a >= 1e9) return (t/1e9).toLocaleString("fa-IR",{maximumFractionDigits:1}) + " میلیارد";
   if (a >= 1e6) return (t/1e6).toLocaleString("fa-IR",{maximumFractionDigits:1}) + " میلیون";
   return fa(t); };
+const faD = s => String(s).replace(/[0-9]/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 
 async function decrypt(pkg, pw) {
-  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]);
-  const key = await crypto.subtle.deriveKey({name:"PBKDF2", salt:b64(pkg.salt), iterations:200000, hash:"SHA-256"}, base, {name:"AES-GCM", length:256}, false, ["decrypt"]);
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey","deriveBits"]);
+  const kdf = {name:"PBKDF2", salt:b64(pkg.salt), iterations:200000, hash:"SHA-256"};
+  if (pkg.v === 2) {
+    const bits = new Uint8Array(await crypto.subtle.deriveBits(kdf, base, 512));
+    const mk = await crypto.subtle.importKey("raw", bits.slice(32), {name:"HMAC", hash:"SHA-256"}, false, ["verify"]);
+    const iv = b64(pkg.iv), ct = b64(pkg.data), msg = new Uint8Array(iv.length + ct.length); msg.set(iv); msg.set(ct, iv.length);
+    if (!await crypto.subtle.verify("HMAC", mk, b64(pkg.mac), msg)) throw new Error("pw");
+    const ek = await crypto.subtle.importKey("raw", bits.slice(0, 32), "AES-CBC", false, ["decrypt"]);
+    return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-CBC", iv}, ek, ct)));
+  }
+  const key = await crypto.subtle.deriveKey(kdf, base, {name:"AES-GCM", length:256}, false, ["decrypt"]);
   const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:b64(pkg.iv)}, key, b64(pkg.data));
   return JSON.parse(new TextDecoder().decode(pt));
 }
@@ -151,7 +161,9 @@ let D, pFilter = "deb";
 
 function render() {
   $("#co").textContent = D.company;
-  $("#upd").textContent = D.updated;
+  $("#upd").textContent = faD(D.updated);
+  const ageH = D.updated_iso ? (Date.now() - new Date(D.updated_iso)) / 36e5 : 0;
+  $("#upd").classList.toggle("stale", ageH > 24);
   const tot = D.cash.reduce((a,c) => a + c.balance, 0);
   $("#cashTotal").innerHTML = `${toman(tot)}<span class="unit">تومان</span>`;
   $("#cashList").innerHTML = D.cash.map(c => row(c.name, toman(c.balance), c.balance < 0 ? "neg" : "")).join("");
@@ -159,12 +171,13 @@ function render() {
   $("#buyK").innerHTML = kpis(D.purchases);
   const si = D.cheques_in.reduce((a,c) => a + c.amount, 0), so = D.cheques_out.reduce((a,c) => a + c.amount, 0);
   $("#chqSum").innerHTML = row(`دریافتی (${fa(D.cheques_in.length)} فقره)`, toman(si), "pos") + row(`پرداختی (${fa(D.cheques_out.length)} فقره)`, toman(so), "neg");
-  const chq = (l, cls) => l.length ? l.map(c => row(c.party, toman(c.amount), cls, `${c.date} · ش ${c.number}`)).join("") : `<div class="empty">چکی برای این هفته نیست</div>`;
+  const chq = (l, cls) => l.length ? l.map(c => row(c.party || "—", toman(c.amount), cls, `${faD(c.date)} · ش ${faD(c.number)}${c.overdue ? " · سررسید گذشته" : ""}`)).join("") : `<div class="empty">چکی برای این هفته نیست</div>`;
   $("#chIn").innerHTML = chq(D.cheques_in, "pos");
   $("#chOut").innerHTML = chq(D.cheques_out, "neg");
   renderParties(); renderStock();
-  const bc = s => s.includes("تأیید") ? "b-ok" : s.includes("رد") ? "b-bad" : "b-wait";
-  $("#tList").innerHTML = D.tax_invoices.length ? D.tax_invoices.map(t => `<div class="row"><span class="n">${esc(t.party)}<span class="sub">فاکتور ${fa(t.no)} · ${esc(t.date)} · ${toman(t.amount)} تومان</span></span><span class="badge ${bc(t.status)}">${esc(t.status)}</span></div>`).join("") : `<div class="empty">فاکتوری ثبت نشده</div>`;
+  const TS = {sent:["ارسال شده","b-ok"], unsent:["ارسال نشده","b-wait"], error:["خطا","b-bad"]};
+  const ts = s => TS[s] || [s, s.includes("تأیید") ? "b-ok" : s.includes("رد") ? "b-bad" : "b-wait"];
+  $("#tList").innerHTML = D.tax_invoices.length ? D.tax_invoices.map(t => `<div class="row"><span class="n">${esc(t.party)}<span class="sub">فاکتور ${fa(t.no)} · ${faD(esc(t.date))} · ${toman(t.amount)} تومان</span></span><span class="badge ${ts(t.status)[1]}">${esc(ts(t.status)[0])}</span></div>`).join("") : `<div class="empty">فاکتوری ثبت نشده</div>`;
 }
 function renderParties() {
   const q = $("#pq").value.trim();
