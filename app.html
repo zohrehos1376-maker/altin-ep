@@ -107,6 +107,9 @@ nav button.on{color:var(--accent);font-weight:700}
 #pfScale{overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.18);background:#fff}
 #pfSheet{transform-origin:top right;width:297mm;background:#fff}
 .inv{font-family:Vazirmatn,Tahoma,sans-serif;font-size:9.2pt;color:#000;line-height:1.45;direction:rtl}
+.inv{background:#fff}
+.inv table,.inv tbody,.inv tr,.inv td,.inv th,.inv div,.inv span{background:transparent;color:#000;border-radius:0}
+.inv .sec{background:#f2f2f2!important}
 .pfpage{width:297mm;height:209mm;padding:7mm 9mm;box-sizing:border-box;background:#fff;overflow:hidden}
 #pfSheet .inv{padding:7mm 9mm}
 .inv *{box-sizing:border-box}
@@ -120,9 +123,9 @@ nav button.on{color:var(--accent);font-weight:700}
 .inv .party{padding:2px 8px;line-height:1.6}
 .inv .grid{display:grid;grid-template-columns:1.35fr 1fr 1fr;column-gap:14px}
 .inv b{font-weight:700}
-.inv .items th{font-weight:700;font-size:8.6pt;padding:3px 2px;text-align:center}
-.inv .items td{text-align:center;padding:3px 3px;font-size:9pt}
-.inv .items td.desc{font-weight:700;text-align:right;padding-right:8px}
+.inv .pfit th{font-weight:700;font-size:8.6pt;padding:3px 2px;text-align:center}
+.inv .pfit td{text-align:center;padding:3px 3px;font-size:9pt}
+.inv .pfit td.desc{font-weight:700;text-align:right;padding-right:8px}
 .inv .tot td{font-weight:700;height:8mm}
 .inv .cb{display:inline-block;width:13px;height:13px;border:1px solid #000;vertical-align:middle;text-align:center;line-height:12px;font-size:9pt;margin-left:4px}
 .inv .terms{padding:3px 10px;line-height:1.5;font-size:8.2pt}
@@ -473,7 +476,7 @@ const PF = (() => {
 <tr><td colspan="11" class="party"><div class="grid"><div><b>نام شخص حقیقی/حقوقی :</b> ${F(esc(c.name))}</div><div><b>شماره اقتصادی :</b> ${F(c.economic_code)}</div><div><b>شماره ثبت / شماره ملی :</b> ${F(buyerId)}</div>
 <div><b>شماره تلفن/نمابر :</b> ${F(c.phone)}</div><div><b>کد پستی ۱۰ رقمی :</b> ${F(c.postal_code)}</div><div></div></div><div><b>نشانی :</b> ${F(esc(c.address))}</div></td></tr>
 <tr><td class="sec" colspan="11">مشخصات کالا یا خدمات مورد معامله <span style="font-weight:400;font-size:8pt">&nbsp;&nbsp;(کلیه مبالغ به <b>ریال</b> میباشد)</span></td></tr>
-<tbody class="items"><tr><th style="width:6mm">ردیف</th><th style="width:22mm">کد کالا</th><th>شرح کالا یا خدمت</th><th style="width:17mm">تعداد/<br>مقدار</th><th style="width:15mm">واحد</th>
+<tbody class="pfit"><tr><th style="width:6mm">ردیف</th><th style="width:22mm">کد کالا</th><th>شرح کالا یا خدمت</th><th style="width:17mm">تعداد/<br>مقدار</th><th style="width:15mm">واحد</th>
 <th style="width:23mm">مبلغ واحد</th><th style="width:30mm">مبلغ کل</th><th style="width:22mm">مبلغ تخفیف</th><th style="width:30mm">مبلغ کل<br>پس از کسر تخفیف</th>
 <th style="width:23mm">جمع مالیات و<br>عوارض</th><th style="width:33mm">جمع مبلغ کل بعلاوه<br>جمع مالیات و عوارض<br>با احتساب تخفیف</th></tr>${items}
 <tr class="tot"><td colspan="6" style="text-align:right;padding-right:150px;font-size:11pt">جــمع کــل</td><td>${money(T("gross"))}</td><td>${money(T("disc"))}</td><td>${money(T("net"))}</td><td>${money(T("tax"))}</td><td>${money(T("final"))}</td></tr></tbody>
