@@ -71,7 +71,7 @@ input.search{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--li
 .tbl td.num{text-align:left;white-space:nowrap}
 .tbl td .d{color:var(--muted);font-size:11.5px;display:block}
 nav{position:fixed;bottom:0;inset-inline:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
-nav button{flex:1;border:0;background:none;font:inherit;font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0}
+nav button{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:10.5px;white-space:nowrap;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0}
 nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 nav button.on{color:var(--accent);font-weight:700}
 .page{display:none}.page.on{display:block}
@@ -84,6 +84,50 @@ nav button.on{color:var(--accent);font-weight:700}
 #lock .err{color:var(--neg);font-size:13px;min-height:20px;margin-top:8px}
 .foot{color:var(--muted);font-size:11.5px;text-align:center;margin:18px 0 8px}
 .foot a{color:var(--muted)}
+.fl{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:10px 0 4px}
+.pfrow2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pfitem{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
+.pfitem .search{margin-bottom:6px;background:var(--card)}
+.pfitem .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.pfitem .g3 .search{font-size:14px;padding:9px 8px}
+.pfitem .sm{font-size:11.5px;color:var(--muted)}
+.pfitem .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12.5px;color:var(--muted)}
+.pfitem .del{border:0;background:none;color:var(--neg);font:inherit;font-size:12.5px}
+.btn1,.btn2{font:inherit;font-weight:700;border-radius:12px;padding:11px 14px;border:0}
+.btn1{background:var(--accent);color:#fff;width:100%;margin-top:12px}
+.btn2{background:var(--accent-soft);color:var(--accent)}
+#pfAdd{width:100%}
+.pftot{margin-top:12px;font-size:14px;line-height:1.9}
+.pftot b{font-size:16px}
+#p-pf .err{color:var(--neg);font-size:13px;margin-top:8px;min-height:18px}
+#pfView{position:fixed;inset:0;background:var(--bg);z-index:20;overflow:auto;padding:calc(env(safe-area-inset-top) + 8px) 12px 24px}
+.pfbar{display:flex;gap:8px;position:sticky;top:0;z-index:2;padding-bottom:8px;background:var(--bg)}
+.pfbar .btn1{margin:0;flex:1}
+.pfmsg{color:var(--muted);font-size:12.5px;margin-bottom:6px;min-height:18px}
+#pfScale{overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.18);background:#fff}
+#pfSheet{transform-origin:top right;width:297mm;background:#fff}
+.inv{font-family:Vazirmatn,Tahoma,sans-serif;font-size:9.2pt;color:#000;line-height:1.45;direction:rtl}
+.pfpage{width:297mm;height:209mm;padding:7mm 9mm;box-sizing:border-box;background:#fff;overflow:hidden}
+#pfSheet .inv{padding:7mm 9mm}
+.inv *{box-sizing:border-box}
+.inv .head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:3px}
+.inv .num{border-collapse:collapse;font-size:9pt}
+.inv .num td{padding:1px 6px}.inv .num td.v{border:1px solid #000;width:32mm;text-align:center}
+.inv h1{font-size:14pt;margin:0;flex:1;text-align:center;text-decoration:underline;text-underline-offset:4px;font-weight:700}
+.inv table.main{width:100%;border-collapse:collapse}
+.inv table.main td,.inv table.main th{border:1px solid #000}
+.inv .sec{text-align:center;font-weight:700;padding:2px;background:#f2f2f2}
+.inv .party{padding:2px 8px;line-height:1.6}
+.inv .grid{display:grid;grid-template-columns:1.35fr 1fr 1fr;column-gap:14px}
+.inv b{font-weight:700}
+.inv .items th{font-weight:700;font-size:8.6pt;padding:3px 2px;text-align:center}
+.inv .items td{text-align:center;padding:3px 3px;font-size:9pt}
+.inv .items td.desc{font-weight:700;text-align:right;padding-right:8px}
+.inv .tot td{font-weight:700;height:8mm}
+.inv .cb{display:inline-block;width:13px;height:13px;border:1px solid #000;vertical-align:middle;text-align:center;line-height:12px;font-size:9pt;margin-left:4px}
+.inv .terms{padding:3px 10px;line-height:1.5;font-size:8.2pt}
+.inv .sign td{height:25mm;vertical-align:middle;padding:0 8px}
+.inv .stamp{height:24mm;vertical-align:middle;margin-right:25mm}
 </style>
 </head>
 <body>
@@ -139,6 +183,41 @@ nav button.on{color:var(--accent);font-weight:700}
     <div class="card"><div class="dhead"><h2 id="dTitle"></h2><span class="badge b-n" id="dBadge"></span></div><div class="meta" id="dMeta"></div><div id="dBody"></div></div>
   </section>
 
+  <section class="page" id="p-pf">
+    <div class="card">
+      <h2>صدور پیش‌فاکتور</h2>
+      <div class="hint">مشخصات خریدار و کالاها از هلو خوانده می‌شود. خروجی دقیقاً در قالب پیش‌فاکتور هلو است.</div>
+      <label class="fl">خریدار</label>
+      <input class="search" id="pfCust" list="pfCustList" placeholder="نام خریدار را بنویسید…" autocomplete="off">
+      <datalist id="pfCustList"></datalist>
+      <div class="meta" id="pfCustInfo"></div>
+      <div class="pfrow2">
+        <div><label class="fl">شماره پیش‌فاکتور</label><input class="search" id="pfNo" inputmode="numeric"></div>
+        <div><label class="fl">تاریخ</label><input class="search" id="pfDate" placeholder="۱۴۰۵/۰۸/۰۲"></div>
+      </div>
+      <label class="fl">کالاها <span class="unit">(مبالغ به ریال)</span></label>
+      <div id="pfItems"></div>
+      <button class="btn2" id="pfAdd">+ افزودن کالا</button>
+      <datalist id="pfProdList"></datalist>
+      <label class="fl">شرایط فروش</label>
+      <div class="seg" id="pfPay"><button class="on" data-v="">هیچ‌کدام</button><button data-v="نقدی">نقدی</button><button data-v="غیرنقدی">غیر نقدی</button></div>
+      <label class="fl">توضیحات</label>
+      <input class="search" id="pfNotes" placeholder="اختیاری">
+      <div class="pftot" id="pfTot"></div>
+      <button class="btn1" id="pfMake">پیش‌نمایش پیش‌فاکتور</button>
+      <div class="err" id="pfErr"></div>
+    </div>
+  </section>
+
+  <div id="pfView" hidden>
+    <div class="pfbar">
+      <button class="btn2" id="pfClose">› بازگشت</button>
+      <button class="btn1" id="pfShare">PDF / ارسال</button>
+    </div>
+    <div class="pfmsg" id="pfMsg"></div>
+    <div id="pfScale"><div id="pfSheet"></div></div>
+  </div>
+
   <div class="foot">همه‌ی مبالغ به تومان · <a href="#" id="logout">خروج</a></div>
 </div>
 
@@ -148,6 +227,7 @@ nav button.on{color:var(--accent);font-weight:700}
   <button data-p="inv"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/></svg>فاکتورها</button>
   <button data-p="stock"><svg viewBox="0 0 24 24"><path d="M3 7.5L12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9"/></svg>کالا</button>
   <button data-p="cheques"><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 14h6M15 10h3"/></svg>چک‌ها</button>
+  <button data-p="pf"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M12 11v6M9 14h6"/></svg>پیش‌فاکتور</button>
 </nav>
 
 <script>
@@ -273,6 +353,7 @@ function openCardex(i) {
   openDetail(s.name, "کاردکس", `موجودی فعلی: <b>${faQ(s.qty)} ${esc(s.unit)}</b><br>جدیدترین ردیف بالاست`, body);
 }
 function show(page, keepNav) {
+  if (page === "pf") PF.init();
   if (page !== "detail") lastPage = page;
   if (!keepNav) document.querySelectorAll("#nav button").forEach(x => x.classList.toggle("on", x.dataset.p === page));
   document.querySelectorAll(".page").forEach(p => p.classList.toggle("on", p.id === "p-" + page));
@@ -311,6 +392,163 @@ document.querySelectorAll("#pSeg button").forEach(b => b.onclick = () => { pFilt
 document.querySelectorAll("#iSeg button").forEach(b => b.onclick = () => { iFilter = b.dataset.f; document.querySelectorAll("#iSeg button").forEach(x => x.classList.toggle("on", x === b)); renderInv(); });
 $("#pq").oninput = renderParties; $("#iq").oninput = renderInv; $("#sq").oninput = renderStock;
 (async () => { let pw = null; try { pw = sessionStorage.getItem("pw"); } catch {} if (pw) { try { D = await load(pw); unlock(); } catch {} } })();
+// ================= pro-forma invoice (same layout as the Holoo / invoice-system template) =================
+const PF = (() => {
+  const yk = s => String(s ?? "").replace(/ي/g, "ی").replace(/ك/g, "ک");
+  const F = s => faD(yk(s));
+  const num = v => +normDigits(String(v ?? "")).replace(/[^\d.]/g, "") || 0;
+  const money = n => faD(Math.round(n).toLocaleString("en-US").replace(/,/g, "٬"));
+  const qtyF = q => faD(Number.isInteger(+q) ? (+q).toLocaleString("en-US").replace(/,/g, "٬") : String(q));
+  const norm = s => yk(s).replace(/[آأإ]/g, "ا").replace(/ة/g, "ه").replace(/[\s‌]+/g, "");
+  const ONES = ["", "یک", "دو", "سه", "چهار", "پنج", "شش", "هفت", "هشت", "نه"];
+  const TEENS = ["ده", "یازده", "دوازده", "سیزده", "چهارده", "پانزده", "شانزده", "هفده", "هجده", "نوزده"];
+  const TENS = ["", "", "بیست", "سی", "چهل", "پنجاه", "شصت", "هفتاد", "هشتاد", "نود"];
+  const HUND = ["", "یکصد", "دویست", "سیصد", "چهارصد", "پانصد", "ششصد", "هفتصد", "هشتصد", "نهصد"];
+  const SCALE = ["", "هزار", "میلیون", "میلیارد", "هزار میلیارد", "میلیون میلیارد"];
+  function three(n) { const p = [], h = Math.floor(n / 100), r = n % 100; if (h) p.push(HUND[h]);
+    if (r >= 10 && r < 20) p.push(TEENS[r - 10]); else { const t = Math.floor(r / 10), o = r % 10; if (t) p.push(TENS[t]); if (o) p.push(ONES[o]); } return p.join(" و "); }
+  function words(n) { n = Math.round(n); if (!n) return "صفر"; const g = []; let i = 0;
+    while (n) { const x = n % 1000; n = Math.floor(n / 1000); if (x) g.push((three(x) + (SCALE[i] ? " " + SCALE[i] : "")).trim()); i++; } return g.reverse().join(" و "); }
+  function today() {
+    const p = new Intl.DateTimeFormat("en-US-u-ca-persian-nu-latn", {year: "numeric", month: "2-digit", day: "2-digit"}).formatToParts(new Date());
+    const v = t => (p.find(x => x.type === t) || {}).value || ""; return `${v("year").replace(/\D/g, "")}/${v("month")}/${v("day")}`;
+  }
+  let pay = "", built = null;
+  const cfg = () => D.proforma || {};
+  const custs = () => Array.isArray(D.customers) ? D.customers : [];
+  const prods = () => Array.isArray(D.products) ? D.products : [];
+  const findBy = (list, name) => { const q = norm(name); return list.find(x => norm(x.name) === q) || null; };
+  const taxOf = name => { const t = cfg().tax_percent || {}; for (const k in t) if (norm(k) === norm(name)) return +t[k]; return 0; };
+  function lastPrice(prodName, custName) {   // most recent sales price of this item (to this customer first)
+    const inv = arr("invoices").filter(f => f.type === "F"); let any = null, mine = null;
+    for (const f of inv) for (const l of (f.lines || [])) if (norm(l.name) === norm(prodName)) {
+      if (!any) any = l.price; if (!mine && custName && norm(f.party) === norm(custName)) mine = l.price; }
+    return {any, mine};
+  }
+  function itemHtml() {
+    return `<div class="pfitem"><div class="top"><span>کالا</span><button class="del" type="button">حذف</button></div>
+      <input class="search p-name" list="pfProdList" placeholder="نام کالا…" autocomplete="off">
+      <div class="g3"><div><span class="sm">مقدار</span><input class="search p-qty" inputmode="decimal"></div>
+      <div><span class="sm">واحد</span><input class="search p-unit" list="pfUnits" value="کیلوگرم"></div>
+      <div><span class="sm">تخفیف (ریال)</span><input class="search p-disc" inputmode="numeric" placeholder="۰"></div></div>
+      <span class="sm">مبلغ واحد (ریال)</span><input class="search p-price" inputmode="numeric">
+      <div class="sm p-hint"></div></div>`;
+  }
+  function addItem() { $("#pfItems").insertAdjacentHTML("beforeend", itemHtml()); recalc(); }
+  function readItems() {
+    return [...document.querySelectorAll("#pfItems .pfitem")].map(el => {
+      const name = el.querySelector(".p-name").value.trim(), p = findBy(prods(), name) || {};
+      const qty = num(el.querySelector(".p-qty").value), price = num(el.querySelector(".p-price").value), disc = num(el.querySelector(".p-disc").value);
+      const gross = qty * price, net = gross - disc, taxP = taxOf(name), tax = Math.round(net * taxP / 100);
+      return {el, name: p.name || name, code: p.code || "", unit: el.querySelector(".p-unit").value.trim() || "کیلوگرم", qty, price, gross, disc, net, taxP, tax, final: net + tax};
+    }).filter(r => r.name || r.qty || r.price);
+  }
+  function recalc() {
+    const cust = $("#pfCust").value.trim(), rows = readItems();
+    for (const r of rows) {
+      const lp = lastPrice(r.name, cust), h = [];
+      if (r.taxP) h.push(`مالیات ${faD(r.taxP)}٪`);
+      if (lp.mine) h.push(`آخرین فروش به این خریدار: ${money(lp.mine)}`); else if (lp.any) h.push(`آخرین قیمت فروش: ${money(lp.any)}`);
+      if (r.qty && r.price) h.push(`جمع ردیف: ${money(r.final)} ریال`);
+      r.el.querySelector(".p-hint").innerHTML = h.join(" · ");
+    }
+    const t = rows.reduce((a, r) => a + r.final, 0);
+    $("#pfTot").innerHTML = rows.length && t ? `جمع کل: <b>${money(t)}</b> ریال<br><span class="unit">${toman(t)} تومان</span>` : "";
+    const c = findBy(custs(), cust);
+    $("#pfCustInfo").innerHTML = !cust ? "" : c ? F([c.economic_code && `کد اقتصادی ${c.economic_code}`, c.postal_code && `کد پستی ${c.postal_code}`, c.address].filter(Boolean).join(" · ") || "مشخصات تکمیلی ثبت نشده")
+      : `<span class="neg">این نام در طرف حساب‌های هلو نیست؛ فقط نام چاپ می‌شود.</span>`;
+  }
+  function sheet(o) {
+    const s = cfg().seller || {}, c = o.cust, rows = o.rows, T = k => rows.reduce((a, r) => a + r[k], 0);
+    const box = on => `<span class="cb">${on ? "✕" : ""}</span>`, buyerId = c.national_id || c.economic_code || "";
+    const items = rows.map((r, i) => `<tr><td>${faD(i + 1)}</td><td>${faD(r.code)}</td><td class="desc">${F(r.name)}</td><td>${qtyF(r.qty)}</td><td>${F(r.unit)}</td><td>${money(r.price)}</td><td>${money(r.gross)}</td><td>${money(r.disc)}</td><td>${money(r.net)}</td><td>${money(r.tax)}</td><td>${money(r.final)}</td></tr>`).join("");
+    const terms = (cfg().terms || []).map((t, i) => `<div>${faD(i + 1)}- ${esc(t)}</div>`).join("");
+    const stamp = cfg().stamp_png_base64 ? `<img class="stamp" src="data:image/png;base64,${cfg().stamp_png_base64}">` : "";
+    return `<div class="inv"><div class="head"><div style="width:52mm"></div><h1>پیش فاکتور&nbsp;&nbsp;کالا و خدمات</h1>
+<table class="num"><tr><td><b>شماره فاکتور :</b></td><td class="v">${faD(o.no)}</td></tr><tr><td><b>تاریخ :</b></td><td class="v">${faD(o.date)}</td></tr></table></div>
+<table class="main"><tr><td class="sec" colspan="11">مشخصات فروشنده</td></tr>
+<tr><td colspan="11" class="party"><div class="grid"><div><b>نام شخص حقیقی/حقوقی :</b> ${esc(s.name)}</div><div><b>شماره اقتصادی :</b> ${F(s.economic_code)}</div><div><b>شماره ثبت / شماره ملی :</b> ${F(s.national_id)}</div>
+<div><b>شماره تلفن / نمابر :</b> ${F(s.phone)}</div><div><b>کد پستی ۱۰ رقمی :</b> ${F(s.postal_code)}</div><div></div></div><div><b>نشانی :</b> ${F(esc(s.address))}</div></td></tr>
+<tr><td class="sec" colspan="11">مشخصات خریدار</td></tr>
+<tr><td colspan="11" class="party"><div class="grid"><div><b>نام شخص حقیقی/حقوقی :</b> ${F(esc(c.name))}</div><div><b>شماره اقتصادی :</b> ${F(c.economic_code)}</div><div><b>شماره ثبت / شماره ملی :</b> ${F(buyerId)}</div>
+<div><b>شماره تلفن/نمابر :</b> ${F(c.phone)}</div><div><b>کد پستی ۱۰ رقمی :</b> ${F(c.postal_code)}</div><div></div></div><div><b>نشانی :</b> ${F(esc(c.address))}</div></td></tr>
+<tr><td class="sec" colspan="11">مشخصات کالا یا خدمات مورد معامله <span style="font-weight:400;font-size:8pt">&nbsp;&nbsp;(کلیه مبالغ به <b>ریال</b> میباشد)</span></td></tr>
+<tbody class="items"><tr><th style="width:6mm">ردیف</th><th style="width:22mm">کد کالا</th><th>شرح کالا یا خدمت</th><th style="width:17mm">تعداد/<br>مقدار</th><th style="width:15mm">واحد</th>
+<th style="width:23mm">مبلغ واحد</th><th style="width:30mm">مبلغ کل</th><th style="width:22mm">مبلغ تخفیف</th><th style="width:30mm">مبلغ کل<br>پس از کسر تخفیف</th>
+<th style="width:23mm">جمع مالیات و<br>عوارض</th><th style="width:33mm">جمع مبلغ کل بعلاوه<br>جمع مالیات و عوارض<br>با احتساب تخفیف</th></tr>${items}
+<tr class="tot"><td colspan="6" style="text-align:right;padding-right:150px;font-size:11pt">جــمع کــل</td><td>${money(T("gross"))}</td><td>${money(T("disc"))}</td><td>${money(T("net"))}</td><td>${money(T("tax"))}</td><td>${money(T("final"))}</td></tr></tbody>
+<tr><td colspan="5" style="padding:5px 8px"><b>شرایط و نحوه فروش :</b> &nbsp;&nbsp;&nbsp;&nbsp;${box(o.pay === "نقدی")}نقدی &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${box(o.pay === "غیرنقدی")}غیر نقدی</td>
+<td colspan="6" rowspan="2" style="padding:5px 8px;vertical-align:middle">${words(T("final"))} ریال</td></tr>
+<tr><td colspan="5" style="padding:4px 8px;height:9mm;vertical-align:top"><b>توضیحات :</b> ${F(esc(o.notes))}</td></tr>
+<tr><td colspan="11" class="terms">${terms}<div style="margin-top:6px">${esc(cfg().payment_note || "")}</div></td></tr></table>
+<table class="main sign" style="margin-top:4px"><tr><td style="width:50%"><b>مهر و امضاء فروشنده</b>${stamp}</td><td><b>مهر و امضاء خریدار</b></td></tr></table></div>`;
+  }
+  function fit() { const w = $("#pfScale").clientWidth, el = $("#pfSheet"), s = w / el.offsetWidth; el.style.transform = `scale(${s})`; $("#pfScale").style.height = (el.offsetHeight * s) + "px"; }
+  function make() {
+    const name = $("#pfCust").value.trim(), rows = readItems().filter(r => r.name && r.qty && r.price);
+    if (!name) return $("#pfErr").textContent = "نام خریدار را وارد کنید.";
+    if (!rows.length) return $("#pfErr").textContent = "حداقل یک کالا با مقدار و مبلغ وارد کنید.";
+    $("#pfErr").textContent = "";
+    const cust = findBy(custs(), name) || {name};
+    built = {cust, rows, no: normDigits($("#pfNo").value) || "", date: normDigits($("#pfDate").value) || today(), pay, notes: $("#pfNotes").value.trim()};
+    $("#pfSheet").innerHTML = sheet(built); $("#pfMsg").textContent = "این پیش‌نمایش است. برای گرفتن فایل PDF دکمه‌ی بالا را بزنید.";
+    $("#pfView").hidden = false; document.body.style.overflow = "hidden"; requestAnimationFrame(fit);
+  }
+  function lib() {
+    if (window.html2pdf) return Promise.resolve();
+    return new Promise((ok, bad) => { const s = document.createElement("script");
+      s.src = "html2pdf.bundle.min.js"; s.onload = ok; s.onerror = bad; document.head.appendChild(s); });
+  }
+  async function share() {
+    const b = $("#pfShare"); b.disabled = true; $("#pfMsg").textContent = "در حال ساختن PDF…";
+    try {
+      await lib(); await document.fonts.ready;
+      const host = document.createElement("div"); host.style.cssText = "position:absolute;left:0;top:0;width:297mm;background:#fff;z-index:-1";
+      host.innerHTML = `<div class="pfpage" dir="rtl">${sheet(built)}</div>`; document.body.appendChild(host);
+      const root = document.documentElement, oldDir = root.dir; root.dir = "ltr"; window.scrollTo(0, 0);
+      // draw every text run right-to-left (left-anchored) so Persian words, spaces and colons keep their order
+      const P = CanvasRenderingContext2D.prototype, ft0 = P.fillText;
+      P.fillText = function (t, x, y, w) { this.save(); this.direction = "rtl"; this.textAlign = "left"; const r = w === undefined ? ft0.call(this, t, x, y) : ft0.call(this, t, x, y, w); this.restore(); return r; };
+      const fname = `پیش فاکتور ${built.no || ""} - ${yk(built.cust.name)}.pdf`.replace(/\s+/g, " ");
+      let blob;
+      try { blob = await html2pdf().set({margin: 0, image: {type: "jpeg", quality: 0.96}, html2canvas: {scale: 2, backgroundColor: "#fff", scrollX: 0, scrollY: 0, windowWidth: host.scrollWidth, windowHeight: host.scrollHeight},
+        jsPDF: {unit: "mm", format: "a4", orientation: "landscape"}}).from(host.firstChild).outputPdf("blob"); } finally { root.dir = oldDir; P.fillText = ft0; }
+      host.remove();
+      const file = new File([blob], fname, {type: "application/pdf"});
+      try { const n = +normDigits(String(built.no)); if (n) localStorage.setItem("pfNext", String(n + 1)); } catch {}
+      if (navigator.canShare && navigator.canShare({files: [file]})) { await navigator.share({files: [file], title: fname}).catch(() => {}); $("#pfMsg").textContent = "فایل آماده شد."; }
+      else { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fname; document.body.appendChild(a); a.click(); a.remove(); $("#pfMsg").textContent = "فایل PDF دانلود شد."; }
+    } catch (e) { $("#pfMsg").textContent = "ساخت PDF انجام نشد (احتمالاً اینترنت). دوباره امتحان کنید."; }
+    b.disabled = false;
+  }
+  function init() {
+    $("#pfCustList").innerHTML = custs().map(c => `<option value="${esc(c.name)}">`).join("");
+    $("#pfProdList").innerHTML = prods().map(p => `<option value="${esc(p.name)}">`).join("");
+    if (!$("#pfUnits")) document.body.insertAdjacentHTML("beforeend", `<datalist id="pfUnits">${["کیلوگرم", "حلب", "گالن", "عدد", "کارتن", "تن"].map(u => `<option value="${u}">`).join("")}</datalist>`);
+    let next = +(cfg().next_pish || 1); try { next = Math.max(next, +(localStorage.getItem("pfNext") || 0)); } catch {}
+    if (!$("#pfNo").value) $("#pfNo").value = faD(next);
+    if (!$("#pfDate").value) $("#pfDate").value = faD(today());
+    if (!$("#pfItems").children.length) addItem();
+  }
+  function wire() {
+    $("#pfAdd").onclick = addItem; $("#pfMake").onclick = make; $("#pfShare").onclick = share;
+    $("#pfClose").onclick = () => { $("#pfView").hidden = true; document.body.style.overflow = ""; };
+    $("#pfItems").addEventListener("input", recalc); $("#pfCust").addEventListener("input", recalc);
+    $("#pfItems").addEventListener("change", e => {   // pick a product: fill unit and suggest last price
+      const it = e.target.closest(".pfitem"); if (!it || !e.target.classList.contains("p-name")) return;
+      const p = findBy(prods(), e.target.value); if (!p) return;
+      if (p.unit) it.querySelector(".p-unit").value = yk(p.unit);
+      const lp = lastPrice(p.name, $("#pfCust").value.trim()), pr = it.querySelector(".p-price");
+      if (!pr.value && (lp.mine || lp.any)) pr.value = Math.round(lp.mine || lp.any).toLocaleString("en-US");
+      recalc();
+    });
+    $("#pfItems").addEventListener("click", e => { if (e.target.classList.contains("del")) { e.target.closest(".pfitem").remove(); recalc(); } });
+    document.querySelectorAll("#pfPay button").forEach(b => b.onclick = () => { pay = b.dataset.v; document.querySelectorAll("#pfPay button").forEach(x => x.classList.toggle("on", x === b)); });
+    addEventListener("resize", () => { if (!$("#pfView").hidden) fit(); });
+  }
+  return {init, wire};
+})();
+PF.wire();
 </script>
 </body>
 </html>
