@@ -106,6 +106,34 @@ nav button.on{color:var(--accent);font-weight:700}
 .pfmsg{color:var(--muted);font-size:12.5px;margin-bottom:6px;min-height:18px}
 #pfScale{overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.18);background:#fff}
 #pfSheet{transform-origin:top right;width:297mm;background:#fff}
+#stView{position:fixed;inset:0;background:var(--bg);z-index:20;overflow:auto;padding:calc(env(safe-area-inset-top) + 8px) 12px 24px}
+#stScale{overflow:hidden}
+#stSheet{transform-origin:top right;width:210mm}
+#stSheet .stp{margin-bottom:5mm;box-shadow:0 1px 6px rgba(0,0,0,.25)}
+.stform{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 4px}
+.stform .btn1{grid-column:1/-1;margin-top:2px}
+.stp{width:210mm;height:296.5mm;padding:7mm 8mm 6mm;box-sizing:border-box;background:#fff;color:#000;font-family:Vazirmatn,Tahoma,sans-serif;direction:rtl;overflow:hidden;font-size:8.4pt;line-height:1.4}
+.stp *{box-sizing:border-box;color:#000}
+.stp .sth{position:relative;min-height:34mm;padding-bottom:2mm}
+.stp .stco{text-align:center;font-size:15pt;font-weight:800;line-height:1.25}
+.stp .stsub{text-align:center;font-size:11.5pt;font-weight:800;line-height:1.2}
+.stp .strng{text-align:center;font-size:8.5pt}
+.stp .stl{position:absolute;left:0;top:1mm;line-height:2.1;font-size:8.5pt}
+.stp .stl span{display:inline-block;min-width:28mm}
+.stp .stin{display:grid;grid-template-columns:1.25fr 1fr;row-gap:1.2mm;column-gap:6mm;margin-top:2.5mm;font-size:9pt}
+.stp .stin b{font-weight:800;margin-left:2mm}
+.stp table.stt{width:100%;border-collapse:collapse;table-layout:fixed}
+.stp .stt th,.stp .stt td{border:1px solid #000;padding:.6mm 1mm;background:transparent;vertical-align:middle}
+.stp .stt th{font-weight:800;height:11mm;text-align:center;font-size:9pt;line-height:1.2}
+.stp .stt td{text-align:center;font-size:8.6pt}
+.stp .stt td.d{text-align:right;font-size:8pt;line-height:1.3}
+.stp .stt td.m{text-align:right;white-space:nowrap;font-size:8.6pt}
+.stp .stt td.t{font-weight:800;padding:1mm 0}
+.stp .stt tr.cf td{height:6.5mm}
+.stp .stt tr.cf td.d{font-weight:800}
+.stp .stt tr.tot td{font-weight:800;height:8mm}
+.stp .stt tr.tot td.e{border:0}
+.stp .stw{margin-top:3mm;font-size:9pt;padding-right:2mm}
 .inv{font-family:Vazirmatn,Tahoma,sans-serif;font-size:9.2pt;color:#000;line-height:1.45;direction:rtl}
 .inv{background:#fff}
 .inv table,.inv tbody,.inv tr,.inv td,.inv th,.inv div,.inv span{background:transparent;color:#000;border-radius:0}
@@ -185,6 +213,15 @@ nav button.on{color:var(--accent);font-weight:700}
     <button class="back" id="back">› بازگشت</button>
     <div class="card"><div class="dhead"><h2 id="dTitle"></h2><span class="badge b-n" id="dBadge"></span></div><div class="meta" id="dMeta"></div><div id="dBody"></div></div>
   </section>
+
+  <div id="stView" hidden>
+    <div class="pfbar">
+      <button class="btn2" id="stClose">› بازگشت</button>
+      <button class="btn1" id="stShare">PDF / ارسال</button>
+    </div>
+    <div class="pfmsg" id="stMsg"></div>
+    <div id="stScale"><div id="stSheet"></div></div>
+  </div>
 
   <section class="page" id="p-pf">
     <div class="card">
@@ -341,11 +378,12 @@ function openLedger(kind, i) {
   const tb = sum(L, x => x.bed), ts = sum(L, x => x.bes);
   const body = L.length ? `<div class="list">${[...L].reverse().map(x => {
     const amt = x.bed ? `<span class="pos">بدهکار ${toman(x.bed)}</span>` : `<span class="neg">بستانکار ${toman(x.bes)}</span>`;
-    return `<div class="row lrow"><span class="n">${faD(esc(x.desc)) || "—"}<span class="sub">${faD(x.date)} · سند ${fa(x.no)}</span></span><span class="v">${amt}<small>مانده ${toman(Math.abs(x.bal))}${x.bal < 0 ? " بس" : x.bal > 0 ? " بد" : ""}</small></span></div>`;
+    return `<div class="row lrow"><span class="n">${faD(esc(x.desc)) || "—"}<span class="sub">${faD(x.date)} · سند ${faD(x.no)}</span></span><span class="v">${amt}<small>مانده ${toman(Math.abs(x.bal))}${x.bal < 0 ? " بس" : x.bal > 0 ? " بد" : ""}</small></span></div>`;
   }).join("")}</div>` : `<div class="empty">گردشی ثبت نشده</div>`;
   const bal = p.balance;
+  const form = L.length ? `<div class="stform"><div><label class="fl">از تاریخ</label><input class="search" id="stFrom" placeholder="اختیاری"></div><div><label class="fl">تا تاریخ</label><input class="search" id="stTo" placeholder="اختیاری"></div><button class="btn1" data-st="${kind}:${i}">صورتحساب PDF (قالب هلو)</button></div>` : "";
   openDetail(p.name, kind === "cash" ? "معین" : bal > 0 ? "بدهکار" : bal < 0 ? "بستانکار" : "تسویه",
-    `مانده: <b class="${bal < 0 ? "neg" : "pos"}">${toman(Math.abs(bal))}</b> تومان<br>جمع بدهکار ${toman(tb)} · جمع بستانکار ${toman(ts)}<br>جدیدترین ردیف بالاست`, body);
+    `مانده: <b class="${bal < 0 ? "neg" : "pos"}">${toman(Math.abs(bal))}</b> تومان<br>جمع بدهکار ${toman(tb)} · جمع بستانکار ${toman(ts)}<br>جدیدترین ردیف بالاست`, form + body);
 }
 function openCardex(i) {
   const s = arr("stock")[i], C = Array.isArray(s.cardex) ? s.cardex : [];
@@ -549,9 +587,111 @@ const PF = (() => {
     document.querySelectorAll("#pfPay button").forEach(b => b.onclick = () => { pay = b.dataset.v; document.querySelectorAll("#pfPay button").forEach(x => x.classList.toggle("on", x === b)); });
     addEventListener("resize", () => { if (!$("#pfView").hidden) fit(); });
   }
-  return {init, wire};
+  return {init, wire, words, lib, money, yk, today};
 })();
 PF.wire();
+// ---- account statement (صورتحساب) in Holoo «حساب معین» layout ----
+const ST = (() => {
+  const {words, lib, money, yk, today} = PF;
+  const F = s => faD(yk(s));
+  const M = n => money(Math.abs(n));
+  const tash = b => b > 0 ? "بد" : b < 0 ? "بس" : "---";
+  const dnorm = s => { const p = normDigits(String(s || "")).split(/[\/\-.]/).map(x => +x || 0); if (p.length < 3 || !p[0]) return "";
+    const y = p[0] < 100 ? 1400 + p[0] : p[0]; return `${y}/${String(p[1]).padStart(2, "0")}/${String(p[2]).padStart(2, "0")}`; };
+  let built = null;
+  function data(kind, i, from, to) {
+    const p = arr(kind)[i], L = Array.isArray(p.ledger) ? p.ledger : [];
+    let ob = 0, os = 0; const rows = [];
+    for (const x of L) { const d = dnorm(x.date);
+      if (from && d && d < from) { ob += +x.bed || 0; os += +x.bes || 0; continue; }
+      if (to && d && d > to) continue; rows.push(x); }
+    return {p, rows, ob, os, from, to};
+  }
+  const head = (b, pg) => {
+    const info = b.p.info || {};
+    return `<div class="sth">
+      <div class="stl"><div>تاریخ تنظیم گزارش : <span>${faD(today())}</span></div><div>صفحه : <span>${faD(pg)}</span></div></div>
+      <div class="stco">${F(D.company || "")}</div><div class="stsub">حساب معین</div>
+      ${b.from || b.to ? `<div class="strng">${b.from ? "از تاریخ " + faD(b.from) : ""}${b.from && b.to ? " " : ""}${b.to ? "تا تاریخ " + faD(b.to) : ""}</div>` : ""}
+      <div class="stin">
+        <div><b>صورتحساب :</b>${F(b.p.name)}</div><div><b>کد :</b>${F(info.code || "")}</div>
+        <div><b>تلفن :</b>${F(info.tel || "")}</div><div><b>تلفن همراه :</b>${F(info.mobile || "")}</div>
+        <div style="grid-column:1/-1"><b>آدرس :</b>${F(info.address || "")}</div>
+      </div></div>`;
+  };
+  const COLS = `<colgroup><col style="width:4.5%"><col style="width:7%"><col style="width:9.5%"><col style="width:33%"><col style="width:13.5%"><col style="width:13.5%"><col style="width:15%"><col style="width:4%"></colgroup>`;
+  const THEAD = `<tr><th>ردیف</th><th>شماره<br>سند</th><th>تاریخ</th><th>شرح</th><th>بدهکار</th><th>بستانکار</th><th>باقیمانده</th><th>تش</th></tr>`;
+  const line = (x, n) => `<tr><td>${faD(n)}</td><td>${faD(x.no)}</td><td>${faD(x.date)}</td><td class="d">${F(x.desc)}</td><td class="m">${M(+x.bed || 0)}</td><td class="m">${M(+x.bes || 0)}</td><td class="m">${x.bal ? M(x.bal) : "۰"}</td><td class="t">${tash(x.bal)}</td></tr>`;
+  const carry = (c, show) => `<tr class="cf"><td></td><td></td><td></td><td class="d">${c.label}</td><td class="m">${show ? M(c.bed) : ""}</td><td class="m">${show ? M(c.bes) : ""}</td><td class="m">${show ? M(c.bed - c.bes) : ""}</td><td class="t">${show ? tash(c.bed - c.bes) : ""}</td></tr>`;
+  const total = (c, last) => `<tr class="tot"><td class="e" colspan="4"></td><td class="m">${M(c.bed)}</td><td class="m">${M(c.bes)}</td><td class="m">${M(c.bed - c.bes)}</td><td class="t">${tash(c.bed - c.bes)}</td></tr>`;
+  const page = (b, pg, carryRow, body, foot) => `<div class="stp" dir="rtl">${head(b, pg)}<table class="stt">${COLS}<thead>${THEAD}</thead><tbody>${carryRow}${body}${foot}</tbody></table></div>`;
+  // split rows into A4 pages by measuring real row heights
+  function paginate(b) {
+    const lines = b.rows.map((x, k) => line(x, k + 1));
+    const host = document.createElement("div"); host.style.cssText = "position:absolute;left:-10000px;top:0;width:210mm";
+    const c0 = {label: "منقول از صفحه قبل", bed: 0, bes: 0};
+    host.innerHTML = page(b, 1, carry(c0, true), lines.join(""), total(c0)) ; document.body.appendChild(host);
+    const pg = host.querySelector(".stp"), tb = host.querySelector("tbody"), trs = [...tb.children];
+    const pad = parseFloat(getComputedStyle(pg).paddingTop) + parseFloat(getComputedStyle(pg).paddingBottom);
+    const fixed = host.querySelector(".sth").offsetHeight + host.querySelector("thead").offsetHeight + trs[0].offsetHeight + trs[trs.length - 1].offsetHeight + 28;
+    const avail = pg.clientHeight - pad - fixed;
+    const hs = trs.slice(1, -1).map(t => t.offsetHeight); host.remove();
+    const groups = []; let cur = [], h = 0;
+    hs.forEach((x, k) => { if (cur.length && h + x > avail) { groups.push(cur); cur = []; h = 0; } cur.push(k); h += x; });
+    groups.push(cur);
+    const out = []; const c = {bed: b.ob, bes: b.os};
+    groups.forEach((g, gi) => {
+      const cr = {label: gi === 0 && b.from ? "مانده از قبل" : "منقول از صفحه قبل", bed: c.bed, bes: c.bes};
+      const showCarry = gi > 0 || !!b.from;
+      for (const k of g) { c.bed += +b.rows[k].bed || 0; c.bes += +b.rows[k].bes || 0; }
+      const last = gi === groups.length - 1;
+      const fin = c.bed - c.bes;
+      const foot = total(c) + "";
+      out.push(page(b, gi + 1, carry(cr, showCarry), g.map(k => lines[k]).join(""), foot) .replace(/<\/div>$/, last ? `<div class="stw">${words(Math.abs(fin))} ریال${fin ? " " + (fin > 0 ? "بدهکار" : "بستانکار") : ""}</div></div>` : "</div>"));
+    });
+    return out;
+  }
+  function fit() { const w = $("#stScale").clientWidth, el = $("#stSheet"), s = w / el.offsetWidth; el.style.transform = `scale(${s})`; $("#stScale").style.height = (el.offsetHeight * s) + "px"; }
+  async function open(kind, i) {
+    const from = dnorm($("#stFrom") && $("#stFrom").value), to = dnorm($("#stTo") && $("#stTo").value);
+    await document.fonts.ready;
+    built = data(kind, i, from, to); built.pages = paginate(built);
+    $("#stSheet").innerHTML = built.pages.join("");
+    $("#stMsg").textContent = `پیش‌نمایش صورتحساب (${faD(built.pages.length)} صفحه). برای گرفتن فایل PDF دکمه‌ی بالا را بزنید.`;
+    $("#stView").hidden = false; document.body.style.overflow = "hidden"; requestAnimationFrame(fit);
+  }
+  async function share() {
+    const b = $("#stShare"); b.disabled = true; $("#stMsg").textContent = "در حال ساختن PDF…";
+    try {
+      await lib(); await document.fonts.ready;
+      const host = document.createElement("div"); host.style.cssText = "position:absolute;left:0;top:0;width:210mm;background:#fff;z-index:-1";
+      host.innerHTML = built.pages.join(""); document.body.appendChild(host);
+      const els = [...host.children];
+      const root = document.documentElement, oldDir = root.dir; root.dir = "ltr"; window.scrollTo(0, 0);
+      const P = CanvasRenderingContext2D.prototype, ft0 = P.fillText;
+      P.fillText = function (t, x, y, w) { this.save(); this.direction = "rtl"; this.textAlign = "left"; const r = w === undefined ? ft0.call(this, t, x, y) : ft0.call(this, t, x, y, w); this.restore(); return r; };
+      const fname = `صورتحساب ${yk(built.p.name)}.pdf`.replace(/[\\/:*?"<>|]/g, " ").replace(/\s+/g, " ");
+      let blob;
+      try {
+        const opt = el => ({margin: 0, image: {type: "jpeg", quality: 0.95}, html2canvas: {scale: 2, backgroundColor: "#fff", scrollX: 0, scrollY: 0, windowWidth: el.scrollWidth, windowHeight: el.scrollHeight},
+          jsPDF: {unit: "mm", format: "a4", orientation: "portrait"}});
+        let w = html2pdf().set(opt(els[0])).from(els[0]).toPdf();
+        for (const el of els.slice(1)) w = w.get("pdf").then(pdf => { pdf.addPage(); }).set(opt(el)).from(el).toContainer().toCanvas().toPdf();
+        blob = await w.outputPdf("blob");
+      } finally { root.dir = oldDir; P.fillText = ft0; host.remove(); }
+      const file = new File([blob], fname, {type: "application/pdf"});
+      if (navigator.canShare && navigator.canShare({files: [file]})) { await navigator.share({files: [file], title: fname}).catch(() => {}); $("#stMsg").textContent = "فایل آماده شد."; }
+      else { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fname; document.body.appendChild(a); a.click(); a.remove(); $("#stMsg").textContent = "فایل PDF دانلود شد."; }
+    } catch (e) { console.error(e); $("#stMsg").textContent = "ساخت PDF انجام نشد (احتمالاً اینترنت). دوباره امتحان کنید."; }
+    b.disabled = false;
+  }
+  $("#stShare").onclick = share;
+  $("#stClose").onclick = () => { $("#stView").hidden = true; document.body.style.overflow = ""; };
+  document.addEventListener("click", e => { const t = e.target.closest("[data-st]"); if (!t) return; const [k, i] = t.dataset.st.split(":"); open(k, +i); });
+  addEventListener("resize", () => { if (!$("#stView").hidden) fit(); });
+  return {open};
+})();
+
 </script>
 </body>
 </html>
