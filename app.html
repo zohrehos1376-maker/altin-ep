@@ -62,6 +62,7 @@ input.search{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--li
 .rbar i{display:block;height:100%;background:var(--accent);border-radius:3px}.rbar i.b{background:var(--warn)}
 .rm .n{flex:0 0 64px}.rbars{flex:1;display:grid;grid-template-columns:1fr auto;column-gap:8px;align-items:center}.rbars .rbar{margin:3px 0}.rbars small{font-size:11.5px;color:var(--muted);white-space:nowrap}
 .rk .kpi b{font-size:13.5px}
+.rpick{margin:4px 0 8px}#rSeg button{font-size:12.5px;padding:7px 2px}
 .repbtn{display:flex;align-items:center;justify-content:space-between;width:100%;font:inherit;font-weight:700;font-size:15px;color:var(--accent);background:var(--accent-soft);border:0;border-radius:14px;padding:14px;margin:12px 0 0}
 .empty{color:var(--muted);text-align:center;padding:14px 0;font-size:13px}
 .meta{color:var(--muted);font-size:13px;margin-bottom:4px}
@@ -218,7 +219,9 @@ nav button.on{color:var(--accent);font-weight:700}
   <section class="page" id="p-rep">
     <button class="back" data-go="home">› بازگشت</button>
     <div class="card"><h2>گزارش مدیریتی</h2>
-      <div class="seg" id="rSeg"><button data-r="m">این ماه</button><button class="on" data-r="q">سه ماه اخیر</button><button data-r="y">امسال</button></div>
+      <div class="seg" id="rSeg"><button data-r="m">این ماه</button><button class="on" data-r="q">سه ماه</button><button data-r="y">امسال</button><button data-r="mon">ماه…</button><button data-r="rng">بازه…</button></div>
+      <div id="rMonBox" class="rpick" hidden><select class="search" id="rMon"></select></div>
+      <div id="rRngBox" class="rpick" hidden><div class="pfrow2"><div><label class="fl">از تاریخ</label><input class="search" id="rFrom" placeholder="۱۴۰۵/۰۷/۰۱"></div><div><label class="fl">تا تاریخ</label><input class="search" id="rTo" placeholder="۱۴۰۵/۰۷/۳۰"></div></div><button class="btn1" id="rGo">نمایش گزارش</button></div>
       <div class="hint" id="rPer"></div></div>
     <div id="rBody"></div>
   </section>
@@ -615,15 +618,20 @@ const REP = (() => {
   const bar = (v, max, cls = "") => `<span class="rbar"><i class="${cls}" style="width:${max > 0 ? Math.max(2, Math.round(100 * v / max)) : 0}%"></i></span>`;
   const sec = (title, hint, body) => `<div class="card"><h2>${title}</h2>${hint ? `<div class="hint">${hint}</div>` : ""}<div class="list">${body || `<div class="empty">موردی نیست</div>`}</div></div>`;
   const badge = (t, c) => `<span class="badge ${c}">${t}</span>`;
-  let per = "q";
+  let per = "q", selMon = 0, rFrom = "", rTo = "";
+  const dn = s => { const p = normDigits(String(s || "")).split(/[\/\-.]/).map(x => +x || 0); if (p.length < 3 || !p[0]) return "";
+    return `${p[0] < 100 ? 1400 + p[0] : p[0]}/${String(p[1]).padStart(2, "0")}/${String(p[2]).padStart(2, "0")}`; };
   function build() {
     const today = PF.today(), tj = jd(today), tN = dayNo(today);
     const yStart = `${tj.y}/01/01`;
-    const start = per === "m" ? `${tj.y}/${String(tj.m).padStart(2, "0")}/01`
-                : per === "q" ? (tj.m > 2 ? `${tj.y}/${String(tj.m - 2).padStart(2, "0")}/01` : yStart) : yStart;
-    const sN = dayNo(start), days = Math.max(1, tN - sN + 1);
+    const p2 = n => String(n).padStart(2, "0");
+    let start = per === "m" ? `${tj.y}/${p2(tj.m)}/01` : per === "q" ? (tj.m > 2 ? `${tj.y}/${p2(tj.m - 2)}/01` : yStart) : yStart, end = today;
+    if (per === "mon") { start = `${tj.y}/${p2(selMon)}/01`; end = `${tj.y}/${p2(selMon)}/31`; }
+    if (per === "rng") { start = rFrom || yStart; end = rTo || today; if (end < start) [start, end] = [end, start]; }
+    const endEff = end > today ? today : end;
+    const sN = dayNo(start), days = Math.max(1, dayNo(endEff) - sN + 1);
     const inv = arr("invoices").filter(f => f.date && f.date <= today);
-    const inP = f => f.date >= start;
+    const inP = f => f.date >= start && f.date <= end;
     const sales = inv.filter(f => f.type === "F"), buys = inv.filter(f => f.type === "K");
     const sP = sales.filter(inP), bP = buys.filter(inP);
     // average purchase cost per item over the whole year (weighted), and first/last purchase price
@@ -641,7 +649,7 @@ const REP = (() => {
       it.q += +l.qty; it.rev += l.qty * l.price; it.n++; it.cust.add(nm(f.party));
       const c = avgCost(k); if (c === null) it.costed = false; else it.cogs += l.qty * c;
     }
-    const IT = Object.values(items).map(x => ({...x, profit: x.costed ? x.rev - x.cogs : null, margin: x.costed && x.rev ? 100 * (x.rev - x.cogs) / x.rev : null}));
+    const IT = Object.values(items).map(x => ({...x, avgP: x.q ? x.rev / x.q : 0, avgC: avgCost(x.k), profit: x.costed ? x.rev - x.cogs : null, margin: x.costed && x.rev ? 100 * (x.rev - x.cogs) / x.rev : null}));
     const revTot = sum(sP, f => f.total - (f.vat || 0)), buyTot = sum(bP, f => f.total - (f.vat || 0));
     const costedRev = sum(IT.filter(x => x.costed), x => x.rev), profTot = sum(IT.filter(x => x.costed), x => x.profit);
     // stock lookup and 90-day sales rate per item
@@ -658,18 +666,24 @@ const REP = (() => {
     for (const f of sales) { const k = nm(f.party); const c = cust[k] || (cust[k] = {name: f.party, rev: 0, n: 0, last: "", yRev: 0, yN: 0, r90: 0});
       c.yRev += f.total; c.yN++; if (f.date > c.last) c.last = f.date; if (inP(f)) { c.rev += f.total; c.n++; } if (dayNo(f.date) >= r90s) c.r90 += f.total; }
     const CU = Object.values(cust).map(c => { const p = findParty(c.name), bal = p ? p.balance : null;
-      let paid = 0; if (p && Array.isArray(p.ledger)) for (const x of p.ledger) if (x.date >= start) paid += +x.bes || 0;
-      const dso = bal !== null && bal > 0 && c.r90 > 0 ? bal / (c.r90 / 90) : (bal !== null && bal > 0 ? Infinity : 0);
-      const tag = bal === null ? ["", ""] : bal <= 0 ? ["تسویه", "b-ok"] : dso <= 30 ? ["خوش‌حساب", "b-ok"] : dso <= 60 ? ["متوسط", "b-wait"] : ["دیرپرداخت", "b-bad"];
-      return {...c, p, bal, paid, dso, tag, idle: tN - dayNo(c.last)}; });
+      let paid = 0; if (p && Array.isArray(p.ledger)) for (const x of p.ledger) if (x.date >= start && x.date <= end) paid += +x.bes || 0;
+      // aging: payments settle the oldest debts first, so the unpaid balance is made of the newest debit rows.
+      // walk the ledger from the newest row back until the balance is covered -> age of the oldest unpaid part + amount older than 60 days
+      let age = 0, oldD = "", over60 = 0;
+      if (bal > 0 && p && Array.isArray(p.ledger)) { let rem = bal;
+        for (let i = p.ledger.length - 1; i >= 0 && rem > 0; i--) { const x = p.ledger[i], b = +x.bed || 0; if (b <= 0) continue;
+          const part = Math.min(b, rem), a = tN - dayNo(x.date); rem -= part; age = a; oldD = x.date; if (a > 60) over60 += part; }
+        if (rem > 0) { over60 += rem; age = Math.max(age, 61); } }
+      const tag = bal === null ? ["", ""] : bal <= 0 ? ["تسویه", "b-ok"] : age <= 30 ? ["خوش‌حساب", "b-ok"] : age <= 60 ? ["متوسط", "b-wait"] : ["دیرپرداخت", "b-bad"];
+      return {...c, p, bal, paid, age, oldD, over60, tag, idle: tN - dayNo(c.last)}; });
     const sup = {};
     for (const f of buys) { const k = nm(f.party); const s = sup[k] || (sup[k] = {name: f.party, v: 0, n: 0, last: ""}); if (inP(f)) { s.v += f.total; s.n++; } if (f.date > s.last) s.last = f.date; }
-    return {today, start, days, sP, bP, revTot, buyTot, costedRev, profTot, IT, stock, stockBy, rate, lastSale, CU, SU: Object.values(sup).filter(s => s.v > 0), pTrend, sales, buys, tN};
+    return {today, start, end: endEff, days, sP, bP, revTot, buyTot, costedRev, profTot, IT, stock, stockBy, rate, lastSale, CU, SU: Object.values(sup).filter(s => s.v > 0), pTrend, sales, buys, tN};
   }
   function render() {
     const R = build(), out = [];
-    const label = {m: "این ماه", q: "سه ماه اخیر", y: "امسال"}[per];
-    $("#rPer").textContent = `${label}: از ${faD(R.start)} تا ${faD(R.today)}`;
+    const label = {m: "این ماه", q: "سه ماه اخیر", y: "امسال", mon: `ماه ${MON[selMon - 1]}`, rng: "بازه‌ی انتخابی"}[per];
+    $("#rPer").textContent = `${label}: از ${faD(R.start)} تا ${faD(R.end)}`;
     const margin = R.costedRev ? 100 * R.profTot / R.costedRev : NaN;
     const custN = new Set(R.sP.map(f => nm(f.party))).size;
     out.push(`<div class="card"><h2>خلاصه دوره</h2><div class="grid3 rk">
@@ -684,23 +698,24 @@ const REP = (() => {
       <div class="kpi"><span>کالای فروش‌رفته</span><b>${fa(R.IT.length)}</b></div></div>
       <div class="hint" style="margin-top:8px">مبالغ به تومان. سود تقریبی = قیمت فروش منهای میانگین قیمت خرید همان کالا در امسال (تخفیف فاکتورها و هزینه‌های جانبی لحاظ نشده).</div></div>`);
     // monthly trend
-    const mons = {}; for (const f of [...R.sales, ...R.buys]) { if (f.date < R.start) continue; const m = f.date.slice(0, 7); const o = mons[m] || (mons[m] = {s: 0, b: 0}); if (f.type === "F") o.s += f.total - (f.vat || 0); else o.b += f.total - (f.vat || 0); }
+    const mons = {}; for (const f of [...R.sales, ...R.buys]) { if (f.date < R.start || f.date > R.end) continue; const m = f.date.slice(0, 7); const o = mons[m] || (mons[m] = {s: 0, b: 0}); if (f.type === "F") o.s += f.total - (f.vat || 0); else o.b += f.total - (f.vat || 0); }
     const MK = Object.keys(mons).sort(), mMax = Math.max(1, ...MK.map(m => Math.max(mons[m].s, mons[m].b)));
     out.push(sec("روند ماهانه فروش و خرید", "سبز: فروش · نارنجی: خرید", MK.map(m => { const o = mons[m]; const mi = +m.slice(5, 7);
       return `<div class="row rm"><span class="n">${MON[mi - 1]}</span><span class="rbars">${bar(o.s, mMax)}<small>${compact(o.s)}</small>${bar(o.b, mMax, "b")}<small>${compact(o.b)}</small></span></div>`; }).join("")));
     const IT = R.IT, topRev = [...IT].sort((a, b) => b.rev - a.rev).slice(0, 10), rMax = topRev[0] ? topRev[0].rev : 1;
+    const priceLine = x => `<br>میانگین فروش ${toman(x.avgP)}${x.avgC !== null ? ` · میانگین خرید ${toman(x.avgC)}` : " · امسال خرید نداشته"} (هر ${esc(x.unit || "واحد")})`;
     const cardAttr = x => R.stockBy[x.k] ? `data-card="${R.stockBy[x.k].i}"` : "";
     out.push(sec("پرفروش‌ترین کالاها (مبلغ)", "روی هر کالا بزنید تا کاردکسش باز شود", topRev.map(x =>
-      row(x.name, toman(x.rev), "", `${faQ(x.q)} ${esc(x.unit)} · سهم ${pct(100 * x.rev / (R.revTot || 1))} · ${fa(x.cust.size)} مشتری${x.margin !== null ? ` · حاشیه ${pct(x.margin)}` : ""}${bar(x.rev, rMax)}`, cardAttr(x))).join("")));
+      row(x.name, toman(x.rev), "", `${faQ(x.q)} ${esc(x.unit)} · سهم ${pct(100 * x.rev / (R.revTot || 1))} · ${fa(x.cust.size)} مشتری${x.margin !== null ? ` · حاشیه ${pct(x.margin)}` : ""}${priceLine(x)}${bar(x.rev, rMax)}`, cardAttr(x))).join("")));
     const topQ = [...IT].sort((a, b) => b.n - a.n || b.q - a.q).slice(0, 10);
     out.push(sec("پرگردش‌ترین کالاها", "بیشترین دفعات فروش (تعداد ردیف فاکتور) در دوره", topQ.map(x =>
       row(x.name, `${fa(x.n)} بار`, "", `${faQ(x.q)} ${esc(x.unit)} · ${fa(x.cust.size)} مشتری`, cardAttr(x))).join("")));
-    const topP = IT.filter(x => x.profit !== null).sort((a, b) => b.profit - a.profit).slice(0, 10);
+    const topP = IT.filter(x => x.profit !== null && x.profit > 0).sort((a, b) => b.profit - a.profit).slice(0, 10);
     out.push(sec("سودآورترین کالاها", "سود ناخالص تقریبی در دوره", topP.map(x =>
-      row(x.name, toman(x.profit), x.profit < 0 ? "neg" : "pos", `فروش ${toman(x.rev)} · حاشیه ${pct(x.margin)}`, cardAttr(x))).join("")));
+      row(x.name, toman(x.profit), "pos", `فروش ${toman(x.rev)} · حاشیه ${pct(x.margin)}${priceLine(x)}`, cardAttr(x))).join("")));
     const low = IT.filter(x => x.margin !== null && x.margin < 5).sort((a, b) => a.margin - b.margin);
     out.push(sec("کالاهای کم‌سود یا زیر قیمت خرید", "حاشیه کمتر از ۵٪ — قیمت فروش را بازبینی کنید", low.map(x =>
-      row(x.name, pct(x.margin), x.margin < 0 ? "neg" : "", `فروش ${toman(x.rev)} · سود ${toman(x.profit)}`, cardAttr(x))).join("")));
+      row(x.name, pct(x.margin), x.margin < 0 ? "neg" : "", `فروش ${toman(x.rev)} · سود ${toman(x.profit)}${priceLine(x)}`, cardAttr(x))).join("")));
     // purchasing: stock cover
     const need = R.stock.filter(s => R.rate[s.k] > 0).map(s => ({...s, cover: s.qty / R.rate[s.k]})).filter(s => s.cover < 30).sort((a, b) => a.cover - b.cover);
     out.push(sec("نیاز به خرید", "موجودی فعلی کمتر از ۳۰ روز فروش (بر اساس سرعت فروش ۹۰ روز اخیر)", need.map(s =>
@@ -714,14 +729,14 @@ const REP = (() => {
     // customers
     const ledAttr = c => c.p ? `data-led="parties:${c.p.i}"` : "";
     const topC = R.CU.filter(c => c.rev > 0).sort((a, b) => b.rev - a.rev).slice(0, 12), cMax = topC[0] ? topC[0].rev : 1;
-    out.push(sec("بهترین مشتریان", "بیشترین خرید در دوره · برچسب = وضعیت پرداخت (مانده نسبت به خرید ۹۰ روز اخیر) · روی هر نفر بزنید تا معینش باز شود", topC.map(c =>
+    out.push(sec("بهترین مشتریان", "بیشترین خرید در دوره · برچسب = قدیمی‌ترین بخش پرداخت‌نشده‌ی مانده (تا ۳۰ روز خوش‌حساب، تا ۶۰ روز متوسط، بیشتر دیرپرداخت) · روی هر نفر بزنید تا معینش باز شود", topC.map(c =>
       row(c.name, `${toman(c.rev)} ${c.tag[0] ? badge(c.tag[0], c.tag[1]) : ""}`, "", `${fa(c.n)} فاکتور · آخرین خرید ${faD(c.last)}${c.bal !== null ? ` · مانده ${toman(Math.abs(c.bal))}${c.bal > 0 ? " بد" : c.bal < 0 ? " بس" : ""}` : ""}${c.paid ? ` · پرداختی دوره ${toman(c.paid)}` : ""}${bar(c.rev, cMax)}`, ledAttr(c))).join("")));
-    const good = R.CU.filter(c => c.yN >= 2 && c.bal !== null && (c.bal <= 0 || c.dso <= 30)).sort((a, b) => b.yRev - a.yRev).slice(0, 10);
-    out.push(sec("مشتریان خوش‌حساب", "حداقل ۲ خرید امسال و مانده‌ای کمتر از ۳۰ روز خریدشان — برای اعتبار و شرایط بهتر", good.map(c =>
+    const good = R.CU.filter(c => c.yN >= 2 && c.bal !== null && (c.bal <= 0 || c.age <= 30)).sort((a, b) => b.yRev - a.yRev).slice(0, 10);
+    out.push(sec("مشتریان خوش‌حساب", "حداقل ۲ خرید امسال و هیچ بدهی قدیمی‌تر از ۳۰ روز ندارند — برای اعتبار و شرایط بهتر", good.map(c =>
       row(c.name, toman(c.yRev), "pos", `${fa(c.yN)} فاکتور امسال · مانده ${toman(Math.max(0, c.bal))}`, ledAttr(c))).join("")));
-    const late = R.CU.filter(c => c.bal > 0 && c.dso > 60).sort((a, b) => b.bal - a.bal).slice(0, 10);
-    out.push(sec("طلب‌های دیر وصول", "مانده بیش از ۶۰ روزِ خریدِ مشتری — پیگیری وصول", late.map(c =>
-      row(c.name, toman(c.bal), "neg", `${isFinite(c.dso) ? `حدود ${fa(Math.round(c.dso))} روز خرید` : "در ۹۰ روز اخیر خریدی نداشته"} · آخرین خرید ${faD(c.last)}`, ledAttr(c))).join("")));
+    const late = R.CU.filter(c => c.over60 > 0).sort((a, b) => b.over60 - a.over60).slice(0, 10);
+    out.push(sec("طلب‌های دیر وصول", "بخشی از مانده که از فاکتورهای بیش از ۶۰ روز پیش باقی مانده (با فرض اینکه هر پرداخت اول قدیمی‌ترین بدهی را صاف می‌کند) — پیگیری وصول", late.map(c =>
+      row(c.name, toman(c.over60), "neg", `کل مانده ${toman(c.bal)} · قدیمی‌ترین بدهی باز از ${c.oldD ? faD(c.oldD) : "قبل از امسال"} (${fa(c.age)} روز) · آخرین خرید ${faD(c.last)}`, ledAttr(c))).join("")));
     const idle = R.CU.filter(c => c.yN >= 2 && c.idle > 45).sort((a, b) => b.yRev - a.yRev).slice(0, 10);
     out.push(sec("مشتریان کم‌فعال‌شده", "امسال خرید داشته‌اند ولی بیش از ۴۵ روز است خرید نکرده‌اند — برای تماس فروش", idle.map(c =>
       row(c.name, `${fa(c.idle)} روز`, "", `آخرین خرید ${faD(c.last)} · ${fa(c.yN)} فاکتور امسال · ${toman(c.yRev)}`, ledAttr(c))).join("")));
@@ -730,7 +745,13 @@ const REP = (() => {
       return row(s.name, toman(s.v), "", `${fa(s.n)} فاکتور · آخرین خرید ${faD(s.last)}${bal !== null ? ` · مانده ${toman(Math.abs(bal))}${bal < 0 ? " بس" : bal > 0 ? " بد" : ""}` : ""}`, p >= 0 ? `data-led="parties:${p}"` : ""); }).join("")));
     $("#rBody").innerHTML = out.join("");
   }
-  document.querySelectorAll("#rSeg button").forEach(b => b.onclick = () => { per = b.dataset.r; document.querySelectorAll("#rSeg button").forEach(x => x.classList.toggle("on", x === b)); render(); });
+  function fillMonths() { const tm = jd(PF.today()).m; if (!selMon || selMon > tm) selMon = tm;
+    $("#rMon").innerHTML = MON.slice(0, tm).map((m, i) => `<option value="${i + 1}"${i + 1 === selMon ? " selected" : ""}>${m}</option>`).reverse().join(""); }
+  document.querySelectorAll("#rSeg button").forEach(b => b.onclick = () => { per = b.dataset.r; document.querySelectorAll("#rSeg button").forEach(x => x.classList.toggle("on", x === b));
+    $("#rMonBox").hidden = per !== "mon"; $("#rRngBox").hidden = per !== "rng";
+    if (per === "mon") { fillMonths(); render(); } else if (per === "rng") { if (!$("#rFrom").value) $("#rFrom").value = faD(`${jd(PF.today()).y}/01/01`); if (!$("#rTo").value) $("#rTo").value = faD(PF.today()); } else render(); });
+  $("#rMon").onchange = () => { selMon = +$("#rMon").value; render(); };
+  $("#rGo").onclick = () => { rFrom = dn($("#rFrom").value); rTo = dn($("#rTo").value); render(); };
   return {render};
 })();
 
